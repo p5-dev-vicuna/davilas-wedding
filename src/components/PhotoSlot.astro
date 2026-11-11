@@ -1,0 +1,22 @@
+---
+// Tasteful placeholder for a photo the couple will drop in later.
+// Props:
+//   label — small-caps caption shown inside the slot
+//   ratio — CSS aspect-ratio value (e.g. "4 / 5")
+//   tone  — visual tint: "sage" | "cream" | "gold"
+// When a real photo exists, replace this component with an <img> —
+// each page's comments show exactly where.
+interface Props {
+  label?: string
+  ratio?: string
+  tone?: 'sage' | 'cream' | 'gold'
+  class?: string
+}
+
+const { label = 'photo coming soon', ratio = '4 / 5', tone = 'sage', class: cls = '' } = Astro.props
+---
+
+<figure class:list={['photo-slot', `tone-${tone}`, cls]} style={`aspect-ratio: ${ratio}`}>
+  <span class="photo-glyph" aria-hidden="true">❦</span>
+  <figcaption class="photo-label">{label}</figcaption>
+</figure>

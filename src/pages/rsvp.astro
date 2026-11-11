@@ -1,0 +1,276 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+---
+
+<Base title="RSVP" description="Let Kendra & Nando know if you'll be joining them on October 23, 2027 in Rockmart, Georgia.">
+  <section class="page page-narrow">
+    <header class="page-header">
+      <h1 class="section-title" data-testid="rsvp-heading">RSVP</h1>
+      <Divider />
+      <p class="lede" data-testid="rsvp-lede">
+        One tiny form, one big favor — let us know if you'll be with us on October 23, 2027.
+      </p>
+    </header>
+
+    <!-- Warm callout, deliberately placed DIRECTLY above the form fields. -->
+    <aside class="callout" data-testid="rsvp-guest-note">
+      <p class="script callout-title">a quick note on guests</p>
+      <p>
+        Invitations are for you only unless we've personally told you otherwise. We love your people, but
+        our guest list is set — we appreciate you understanding!
+      </p>
+    </aside>
+
+    <form id="rsvp-form" class="form" novalidate data-testid="rsvp-form">
+      <div class="field">
+        <label for="rsvp-name">Full name</label>
+        <input
+          id="rsvp-name"
+          name="full_name"
+          type="text"
+          autocomplete="name"
+          required
+          maxlength="120"
+          placeholder="Your full name"
+          data-testid="rsvp-name"
+        />
+        <p class="field-error" data-testid="rsvp-name-error" hidden></p>
+      </div>
+
+      <fieldset class="field">
+        <legend>Will you attend?</legend>
+        <div class="radio-row">
+          <label class="radio">
+            <input type="radio" name="attending" value="accept" data-testid="rsvp-attending-accept" />
+            <span>Joyfully accept</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="attending" value="decline" data-testid="rsvp-attending-decline" />
+            <span>Regretfully decline</span>
+          </label>
+        </div>
+        <p class="field-error" data-testid="rsvp-attending-error" hidden></p>
+      </fieldset>
+
+      <div class="field">
+        <label for="rsvp-party">Number in your party, including you</label>
+        <input
+          id="rsvp-party"
+          name="party_size"
+          type="number"
+          min="1"
+          max="10"
+          step="1"
+          value="1"
+          required
+          data-testid="rsvp-party"
+        />
+        <p class="field-error" data-testid="rsvp-party-error" hidden></p>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-allergies">
+          Food allergies or dietary restrictions — so we can keep you safe and fed
+        </label>
+        <textarea
+          id="rsvp-allergies"
+          name="allergies"
+          rows="3"
+          maxlength="500"
+          placeholder="e.g. vegetarian, gluten-free, nut allergy…"
+          data-testid="rsvp-allergies"></textarea>
+        <p class="field-error" data-testid="rsvp-allergies-error" hidden></p>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-song">Song request for the reception <span class="optional">(optional)</span></label>
+        <input
+          id="rsvp-song"
+          name="song_request"
+          type="text"
+          maxlength="200"
+          placeholder="A song that'll fill the dance floor…"
+          data-testid="rsvp-song"
+        />
+        <p class="field-error" data-testid="rsvp-song-error" hidden></p>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-notes">Anything else we should know? <span class="optional">(optional)</span></label>
+        <textarea id="rsvp-notes" name="notes" rows="3" maxlength="1000" data-testid="rsvp-notes"></textarea>
+        <p class="field-error" data-testid="rsvp-notes-error" hidden></p>
+      </div>
+
+      <p class="form-error" data-testid="rsvp-form-error" hidden></p>
+
+      <div class="form-actions">
+        <button class="btn" type="submit" data-testid="rsvp-submit">Send RSVP</button>
+      </div>
+    </form>
+
+    <div class="success-box" data-testid="rsvp-success" hidden>
+      <p class="script success-title">thank you!</p>
+      <p data-testid="rsvp-success-text"></p>
+    </div>
+
+    <Divider />
+
+    <p class="center" data-testid="rsvp-songs-teaser">
+      Got a song that'll fill the dance floor?
+      <a href="/songs" data-testid="rsvp-songs-link">Request it here</a>.
+    </p>
+  </section>
+</Base>
+
+<script>
+  const form = document.getElementById('rsvp-form') as HTMLFormElement
+  const submitBtn = document.querySelector<HTMLButtonElement>('[data-testid="rsvp-submit"]')
+  const formError = document.querySelector<HTMLElement>('[data-testid="rsvp-form-error"]')
+  const successBox = document.querySelector<HTMLElement>('[data-testid="rsvp-success"]')
+  const successText = document.querySelector<HTMLElement>('[data-testid="rsvp-success-text"]')
+
+  // server field name -> testid infix used on this page
+  const errorMap: Record<string, string> = {
+    full_name: 'name',
+    attending: 'attending',
+    party_size: 'party',
+    allergies: 'allergies',
+    song_request: 'song',
+    notes: 'notes',
+  }
+
+  function fieldErrorEl(field: string): HTMLElement | null {
+    const infix = errorMap[field] ?? field
+    return document.querySelector<HTMLElement>(`[data-testid="rsvp-${infix}-error"]`)
+  }
+
+  function setError(field: string, message: string) {
+    const el = fieldErrorEl(field)
+    if (!el) return
+    el.textContent = message
+    el.hidden = !message
+    const input = document.getElementById(`rsvp-${errorMap[field] ?? field}`)
+    if (input) {
+      if (message) input.setAttribute('aria-invalid', 'true')
+      else input.removeAttribute('aria-invalid')
+    }
+  }
+
+  function clearErrors() {
+    for (const field of Object.keys(errorMap)) setError(field, '')
+    if (formError) {
+      formError.textContent = ''
+      formError.hidden = true
+    }
+  }
+
+  function setFormError(message: string) {
+    if (!formError) return
+    formError.textContent = message
+    formError.hidden = !message
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    clearErrors()
+
+    const fullName = (form.elements.namedItem('full_name') as HTMLInputElement).value
+    const attending =
+      (form.querySelector('input[name="attending"]:checked') as HTMLInputElement | null)?.value ?? ''
+    const party = (form.elements.namedItem('party_size') as HTMLInputElement).value
+    const allergies = (form.elements.namedItem('allergies') as HTMLTextAreaElement).value
+    const song = (form.elements.namedItem('song_request') as HTMLInputElement).value
+    const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value
+
+    let valid = true
+    if (!fullName.trim()) {
+      setError('full_name', 'Please tell us your full name.')
+      valid = false
+    } else if (fullName.trim().length > 120) {
+      setError('full_name', 'Name must be 120 characters or fewer.')
+      valid = false
+    }
+    if (!attending) {
+      setError('attending', 'Please choose whether you will attend.')
+      valid = false
+    }
+    const partyNum = Number(party)
+    if (party === '' || !Number.isInteger(partyNum) || partyNum < 1 || partyNum > 10) {
+      setError('party_size', 'Party size must be a whole number between 1 and 10.')
+      valid = false
+    }
+    if (allergies.trim().length > 500) {
+      setError('allergies', 'Please keep this under 500 characters.')
+      valid = false
+    }
+    if (song.trim().length > 200) {
+      setError('song_request', 'Please keep song requests under 200 characters.')
+      valid = false
+    }
+    if (notes.trim().length > 1000) {
+      setError('notes', 'Please keep notes under 1000 characters.')
+      valid = false
+    }
+    if (!valid) return
+
+    if (submitBtn) {
+      submitBtn.disabled = true
+      submitBtn.textContent = 'Sending…'
+    }
+
+    try {
+      const res = await fetch('/api/rsvp', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          full_name: fullName.trim(),
+          attending: attending === 'accept',
+          party_size: partyNum,
+          allergies: allergies.trim(),
+          song_request: song.trim(),
+          notes: notes.trim(),
+        }),
+      })
+
+      if (res.status === 201 || res.ok) {
+        const firstName = fullName.trim().split(/\s+/)[0] || 'friend'
+        if (successText) {
+          successText.textContent =
+            attending === 'accept'
+              ? `Thank you, ${firstName}! We're over the moon — we'll see you on October 23, 2027. A formal invitation will follow.`
+              : `Thank you for letting us know, ${firstName}. We'll miss you dearly — but we'll raise a glass to you from Rockmart.`
+        }
+        form.hidden = true
+        if (successBox) successBox.hidden = false
+        successBox?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        return
+      }
+
+      if (res.status === 422) {
+        const data = (await res.json().catch(() => null)) as { errors?: Record<string, string> } | null
+        if (data?.errors) {
+          for (const [field, message] of Object.entries(data.errors)) {
+            if (errorMap[field]) setError(field, message)
+          }
+        }
+        setFormError('Please take another look at the highlighted fields.')
+        return
+      }
+
+      if (res.status === 503) {
+        setFormError("Submissions aren't available just yet — please try again soon.")
+        return
+      }
+
+      setFormError('Something went wrong — please try again in a moment.')
+    } catch {
+      setFormError("We couldn't reach the server — check your connection and try again.")
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Send RSVP'
+      }
+    }
+  })
+</script>

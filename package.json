@@ -1,0 +1,29 @@
+{
+  "name": "davilas-wedding",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Wedding website for Kendra & Nando — The Davilas. October 23, 2027 · 1513 at Stone Creek · Rockmart, GA.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node server/index.js",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:e2e": "node scripts/run-e2e.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "@neondatabase/serverless": "^0.10.4",
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "astro": "^5.8.0",
+    "vitest": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

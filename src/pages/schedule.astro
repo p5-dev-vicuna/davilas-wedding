@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+
+// The day's timeline — edit times/events right here.
+const timeline = [
+  {
+    time: '4:00 PM',
+    event: 'Cocktail Hour',
+    note: 'Signature sips and light bites as everyone arrives and settles in.',
+    testid: 'timeline-item-cocktail',
+  },
+  {
+    time: '5:00 PM',
+    event: 'Ceremony',
+    note: 'We say "I do" as the evening light comes through the trees.',
+    testid: 'timeline-item-ceremony',
+  },
+  {
+    time: '6:30 PM',
+    event: 'Reception',
+    note: 'Dinner, toasts, cake — and then the dancing begins.',
+    testid: 'timeline-item-reception',
+  },
+  {
+    time: 'Late',
+    event: 'Dancing Under the Stars',
+    note: 'We celebrate until the last song fades.',
+    testid: 'timeline-item-late',
+  },
+]
+---
+
+<Base title="Schedule" description="Schedule of events for Kendra & Nando's wedding — October 23, 2027 at 1513 at Stone Creek, Rockmart, GA.">
+  <section class="page page-narrow">
+    <header class="page-header">
+      <h1 class="section-title" data-testid="schedule-heading">Schedule of Events</h1>
+      <Divider />
+      <p class="lede" data-testid="schedule-subtitle">
+        Saturday, October 23, 2027 · 1513 at Stone Creek · Rockmart, GA
+      </p>
+    </header>
+
+    <ol class="timeline" data-testid="timeline">
+      {
+        timeline.map((item) => (
+          <li class="timeline-item" data-testid={item.testid}>
+            <p class="timeline-time">{item.time}</p>
+            <h2 class="timeline-event">{item.event}</h2>
+            <p class="timeline-note">{item.note}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="callout note-box frame" data-testid="attire-note">
+      <p class="note-title">Wedding Attire</p>
+      <p>Details coming soon — check back for guidance on what to wear.</p>
+    </div>
+  </section>
+</Base>

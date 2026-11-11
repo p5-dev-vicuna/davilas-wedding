@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+---
+
+<Base title="Page Not Found">
+  <section class="page page-narrow lost">
+    <span class="script" data-testid="not-found-script">this page wandered off</span>
+    <h1 class="section-title" data-testid="not-found-heading">404</h1>
+    <Divider />
+    <p data-testid="not-found-text">
+      Like a bouquet at midnight, this page has gone missing. Let's get you back to the party.
+    </p>
+    <a class="btn" href="/" data-testid="not-found-home-link">Back to the Celebration</a>
+  </section>
+</Base>

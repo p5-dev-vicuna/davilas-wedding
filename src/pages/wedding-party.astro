@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+import PhotoSlot from '../components/PhotoSlot.astro'
+
+// ✏️✏️✏️ COUPLE: EDIT THE WEDDING PARTY RIGHT HERE ✏️✏️✏️
+// This one array drives the whole page. For each person set:
+//   role   — their title (Maid of Honor, Bridesmaid, Best Man, …)
+//   name   — their name (placeholders read "Name Here" until you fill them in)
+//   side   — "Kendra" or "Nando" (shown as a small tag)
+//   blurb  — one warm line about them
+//   photo  — put a square headshot in public/wedding-party/ and set
+//            photo: '/wedding-party/filename.jpg'  ('' shows the placeholder)
+// Add or remove entries freely — the grid reflows automatically.
+const party = [
+  { role: 'Maid of Honor', name: 'Name Here', side: 'Kendra', blurb: 'Sister, best friend, and chief wedding-planning accomplice.', photo: '' },
+  { role: 'Bridesmaid', name: 'Name Here', side: 'Kendra', blurb: 'College roommate and forever brunch partner.', photo: '' },
+  { role: 'Bridesmaid', name: 'Name Here', side: 'Kendra', blurb: 'The friend who has been there through every chapter.', photo: '' },
+  { role: 'Bridesmaid', name: 'Name Here', side: 'Kendra', blurb: 'Cousin and lifelong partner in mischief.', photo: '' },
+  { role: 'Best Man', name: 'Name Here', side: 'Nando', blurb: 'Brother, trusted advisor, and keeper of the rings.', photo: '' },
+  { role: 'Groomsman', name: 'Name Here', side: 'Nando', blurb: 'Friend since the very first day and every one since.', photo: '' },
+  { role: 'Groomsman', name: 'Name Here', side: 'Nando', blurb: 'The teammate who became family.', photo: '' },
+  { role: 'Groomsman', name: 'Name Here', side: 'Nando', blurb: 'Always up for an adventure — and a toast.', photo: '' },
+  { role: 'Flower Girl', name: 'Name Here', side: 'Kendra', blurb: 'Small in size, mighty in petals.', photo: '' },
+  { role: 'Ring Bearer', name: 'Name Here', side: 'Nando', blurb: 'Serious about his duties, silly about everything else.', photo: '' },
+]
+---
+
+<Base title="Wedding Party" description="Meet the favorite people standing with Kendra & Nando on their wedding day.">
+  <section class="page">
+    <div class="container">
+      <header class="page-header">
+        <h1 class="section-title" data-testid="wedding-party-heading">Wedding Party</h1>
+        <Divider />
+        <p class="lede" data-testid="wedding-party-lede">
+          Our favorite people, standing with us when we say "I do".
+        </p>
+      </header>
+
+      <div class="party-grid" data-testid="party-grid">
+        {
+          party.map((member, i) => (
+            <article class="party-card frame" data-testid={`party-card-${i + 1}`}>
+              {
+                member.photo ? (
+                  <img
+                    class="party-photo"
+                    src={member.photo}
+                    alt={member.name}
+                    width="120"
+                    height="120"
+                  />
+                ) : (
+                  <PhotoSlot class="party-photo" label={member.name} ratio="1 / 1" tone={i % 2 === 0 ? 'sage' : 'gold'} />
+                )
+              }
+              <p class="party-role">
+                {member.role} · {member.side}
+              </p>
+              <h2 class="party-name" data-testid={`party-name-${i + 1}`}>
+                {member.name}
+              </h2>
+              <p class="party-blurb">{member.blurb}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>

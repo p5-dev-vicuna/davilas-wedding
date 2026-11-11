@@ -1,0 +1,1336 @@
+/* ==========================================================================
+   The Davilas — Kendra & Nando · October 23, 2027
+   One stylesheet, vanilla CSS. Design tokens come straight from the couple's
+   save-the-date: cream paper, sage panel, forest ink, thin gold rules.
+   ========================================================================== */
+
+/* ----- Design tokens ----- */
+:root {
+  --cream: #f5f1e8;
+  --cream-deep: #ece6d6;
+  --sage: #5a6152;
+  --forest: #2e4038;
+  --ink: #33342e;
+  --gold: #a89968;
+  --gold-soft: rgba(168, 153, 104, 0.5);
+  --gold-faint: rgba(168, 153, 104, 0.18);
+  --white: #fdfcf8;
+  --rust: #8a3b2e; /* error accents — dark enough to read on cream */
+
+  --font-display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  --font-script: 'Great Vibes', 'Brush Script MT', cursive;
+
+  --shadow-soft: 0 12px 32px rgba(46, 64, 56, 0.09);
+}
+
+/* ----- Reset & base ----- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--ink);
+  background-color: var(--cream);
+  /* subtle letterpress-paper texture */
+  background-image:
+    radial-gradient(rgba(46, 64, 56, 0.028) 1px, transparent 1.4px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 340px);
+  background-size: 26px 26px, 100% 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  color: var(--forest);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 0.6em;
+}
+
+p {
+  margin: 0 0 1.1em;
+}
+
+a {
+  color: var(--sage);
+  text-decoration: underline;
+  text-decoration-color: var(--gold-soft);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--forest);
+  text-decoration-color: var(--gold);
+}
+
+:focus-visible {
+  outline: 2px dashed var(--sage);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--gold-faint);
+  color: var(--forest);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ----- Utilities ----- */
+.container {
+  width: min(1080px, 92vw);
+  margin-inline: auto;
+}
+
+.page {
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0 4rem;
+}
+
+.page-narrow {
+  width: min(720px, 92vw);
+  margin-inline: auto;
+}
+
+.center {
+  text-align: center;
+}
+
+.script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  color: var(--sage);
+}
+
+.smallcaps {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  color: var(--sage);
+}
+
+.optional {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  font-size: 0.85em;
+  color: var(--sage);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 200;
+  background: var(--forest);
+  color: var(--cream);
+  padding: 0.6rem 1.2rem;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* ----- Section titles & page headers ----- */
+.section-title {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  margin-bottom: 0.4em;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.page-header .lede {
+  max-width: 56ch;
+  margin-inline: auto;
+  font-size: 1.15rem;
+  color: var(--sage);
+}
+
+/* ----- Botanical divider (short gold rules + glyph) ----- */
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin: 1.6rem auto;
+}
+
+.divider-rule {
+  width: clamp(48px, 12vw, 96px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+.divider-rule:last-child {
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.divider-glyph {
+  color: var(--gold);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.divider-light .divider-rule {
+  background: linear-gradient(90deg, transparent, var(--gold-soft));
+}
+
+.divider-light .divider-rule:last-child {
+  background: linear-gradient(90deg, var(--gold-soft), transparent);
+}
+
+/* ----- Frames with the card's notched-corner detail ----- */
+.frame {
+  position: relative;
+  border: 1px solid var(--gold-soft);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px solid var(--gold-faint);
+  /* chamfered corners = the save-the-date's notched inner panel */
+  clip-path: polygon(
+    14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px),
+    calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px
+  );
+  pointer-events: none;
+}
+
+/* ----- Photo slots (placeholders for the couple's photos) ----- */
+.photo-slot {
+  margin: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 1px solid var(--gold-soft);
+  background:
+    linear-gradient(135deg, rgba(168, 153, 104, 0.1), rgba(90, 97, 82, 0.14)),
+    repeating-linear-gradient(45deg, rgba(90, 97, 82, 0.05) 0 2px, transparent 2px 9px);
+  color: var(--sage);
+  min-height: 120px;
+  overflow: hidden;
+}
+
+.photo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.photo-glyph {
+  font-size: 1.8rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.photo-label {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.68rem;
+  padding: 0 1rem;
+  text-align: center;
+  position: relative;
+}
+
+/* ----- Buttons ----- */
+.btn {
+  display: inline-block;
+  padding: 0.72rem 1.7rem;
+  background: var(--forest);
+  color: var(--cream);
+  border: 1px solid var(--forest);
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.82rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--sage);
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--forest);
+  border-color: var(--gold-soft);
+}
+
+.btn-outline:hover {
+  background: var(--gold-faint);
+  color: var(--forest);
+  border-color: var(--gold);
+}
+
+/* ----- Header, nav, RSVP button ----- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(245, 241, 232, 0.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--gold-soft);
+}
+
+.header-inner {
+  width: min(1180px, 94vw);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.65rem 0;
+}
+
+.monogram {
+  font-family: var(--font-script);
+  font-size: 1.7rem;
+  color: var(--forest);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.monogram:hover {
+  color: var(--sage);
+}
+
+.site-nav {
+  margin-left: auto;
+}
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav a {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.76rem;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 0.35rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.site-nav a:hover {
+  color: var(--forest);
+  border-bottom-color: var(--gold-soft);
+}
+
+.site-nav a[aria-current='page'] {
+  color: var(--forest);
+  border-bottom-color: var(--gold);
+}
+
+.header-rsvp {
+  padding: 0.5rem 1.2rem;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  color: var(--forest);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+}
+
+@media (max-width: 1020px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--cream);
+    border-bottom: 1px solid var(--gold-soft);
+    box-shadow: var(--shadow-soft);
+    padding: 0.6rem 1.4rem 1rem;
+  }
+
+  .site-header.open .site-nav {
+    display: block;
+  }
+
+  .site-nav ul {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .site-nav a {
+    display: block;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--gold-faint);
+  }
+
+  .header-rsvp {
+    margin-left: 0.4rem;
+  }
+
+  .monogram {
+    font-size: 1.45rem;
+  }
+}
+
+/* ----- Footer ----- */
+.site-footer {
+  background: var(--forest);
+  color: rgba(245, 241, 232, 0.88);
+  text-align: center;
+  padding: 3rem 1rem 2.2rem;
+  margin-top: 3rem;
+}
+
+.footer-names {
+  font-size: 2.1rem;
+  color: var(--cream);
+  margin-bottom: 0.3rem;
+}
+
+.footer-line {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.76rem;
+  margin-bottom: 0.4rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+  margin: 0.8rem 0;
+}
+
+.footer-links a {
+  color: var(--gold);
+  text-decoration: none;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.76rem;
+}
+
+.footer-links a:hover {
+  color: var(--cream);
+  text-decoration: underline;
+}
+
+.footer-contact {
+  margin-bottom: 0.6rem;
+}
+
+.fineprint {
+  font-size: 0.72rem;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ----- Home hero — the save-the-date split layout ----- */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 78vh;
+  border-bottom: 1px solid var(--gold-soft);
+}
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 1.05fr 1fr;
+    min-height: 86vh;
+  }
+}
+
+.hero-sage {
+  position: relative;
+  background: var(--sage);
+  padding: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46vh;
+}
+
+.hero-sage .photo-slot {
+  width: min(440px, 100%);
+  aspect-ratio: 4 / 5;
+  border-color: rgba(245, 241, 232, 0.55);
+  background:
+    linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(46, 64, 56, 0.2)),
+    repeating-linear-gradient(-45deg, rgba(245, 241, 232, 0.05) 0 2px, transparent 2px 10px);
+  color: rgba(245, 241, 232, 0.9);
+}
+
+.hero-script {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-script);
+  font-size: clamp(2.6rem, 6vw, 4.2rem);
+  color: var(--cream);
+  text-shadow: 0 2px 18px rgba(46, 64, 56, 0.45);
+  pointer-events: none;
+}
+
+.hero-cream {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+}
+
+.hero-card {
+  text-align: center;
+  padding: clamp(2.2rem, 5vw, 3.6rem) clamp(1.6rem, 4vw, 3.2rem);
+  max-width: 560px;
+  width: 100%;
+}
+
+.hero-card .script {
+  font-size: clamp(1.7rem, 3.4vw, 2.3rem);
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.hero-names {
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: clamp(1.7rem, 4.4vw, 2.9rem);
+  font-weight: 600;
+  margin: 0.2em 0;
+}
+
+.hero-amp {
+  color: var(--gold);
+  font-style: italic;
+}
+
+.hero-date,
+.hero-place {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  margin: 0.9em 0;
+}
+
+.hero-date {
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+  color: var(--forest);
+  font-weight: 600;
+}
+
+.hero-place {
+  font-size: clamp(0.8rem, 2vw, 0.95rem);
+  color: var(--sage);
+  letter-spacing: 0.34em;
+}
+
+.hero-card .script-footer {
+  font-size: clamp(1.4rem, 2.8vw, 1.9rem);
+  margin-top: 1.2rem;
+}
+
+/* ----- Countdown ----- */
+.countdown {
+  text-align: center;
+  padding: 2rem 1.2rem 2.3rem;
+  margin: 3rem auto 0;
+  width: fit-content;
+  min-width: min(560px, 92vw);
+}
+
+.countdown-label {
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.count-grid {
+  display: flex;
+  justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.count-cell {
+  min-width: 86px;
+  padding: 0.9rem 0.6rem 0.7rem;
+  border: 1px solid var(--gold-soft);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.count-cell > span:first-child {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--forest);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-unit {
+  display: block;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.66rem;
+  color: var(--sage);
+  margin-top: 0.35rem;
+}
+
+.countdown-done {
+  font-family: var(--script);
+}
+
+/* ----- Home: welcome + section cards ----- */
+.welcome {
+  max-width: 62ch;
+  margin: 0 auto;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.2rem;
+  margin-top: 2.6rem;
+}
+
+.card {
+  position: relative;
+  display: block;
+  padding: 1.8rem 1.4rem 1.6rem;
+  text-decoration: none;
+  color: var(--ink);
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+}
+
+.card .card-glyph {
+  color: var(--gold);
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 1.2rem;
+}
+
+.card h2,
+.card h3 {
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin: 0 0 0.5rem;
+}
+
+.card p {
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--sage);
+}
+
+.card.card-rsvp {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+
+.card.card-rsvp h2 {
+  color: var(--cream);
+}
+
+.card.card-rsvp p {
+  color: rgba(245, 241, 232, 0.75);
+}
+
+.card.card-rsvp .card-glyph {
+  color: var(--gold);
+}
+
+/* ----- Timeline (Schedule) ----- */
+.timeline {
+  list-style: none;
+  margin: 2.5rem auto 0;
+  padding: 0 0 0 2.9rem;
+  max-width: 640px;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--gold) 8%, var(--gold) 92%, transparent);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: 2.6rem;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.9rem - 4px);
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  background: var(--gold);
+  border: 1px solid var(--cream);
+  transform: rotate(45deg);
+}
+
+.timeline-time {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.78rem;
+  color: var(--sage);
+  margin: 0 0 0.25rem;
+}
+
+.timeline-event {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.timeline-note {
+  margin: 0.3rem 0 0;
+  color: var(--ink);
+}
+
+/* ----- Callouts & notes ----- */
+.callout {
+  position: relative;
+  border: 1px solid var(--gold-soft);
+  background: rgba(168, 153, 104, 0.08);
+  padding: 1.6rem 1.6rem 1.3rem;
+  margin: 0 0 2rem;
+  text-align: center;
+}
+
+.callout::before {
+  content: '❦';
+  position: absolute;
+  top: -0.7em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--cream);
+  color: var(--gold);
+  padding: 0 0.6rem;
+  font-size: 1rem;
+}
+
+.callout-title {
+  font-size: 1.7rem;
+  margin-bottom: 0.4rem;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.note-box {
+  padding: 1.5rem 1.6rem;
+  margin: 2rem 0;
+}
+
+.note-box .note-title {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.82rem;
+  color: var(--sage);
+  margin-bottom: 0.5rem;
+}
+
+/* ----- Forms ----- */
+.form {
+  margin-bottom: 2rem;
+}
+
+.field {
+  margin-bottom: 1.5rem;
+  border: 0;
+  padding: 0;
+}
+
+fieldset.field {
+  margin-inline: 0;
+}
+
+legend {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--forest);
+  padding: 0;
+  margin-bottom: 0.55rem;
+}
+
+label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  font-size: 0.86rem;
+  color: var(--forest);
+  margin-bottom: 0.45rem;
+}
+
+input[type='text'],
+input[type='number'],
+textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: var(--white);
+  border: 1px solid var(--gold-soft);
+  padding: 0.68rem 0.85rem;
+}
+
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--sage);
+  outline-offset: 1px;
+  border-color: var(--sage);
+}
+
+input[aria-invalid='true'],
+textarea[aria-invalid='true'] {
+  border-color: var(--rust);
+}
+
+textarea {
+  resize: vertical;
+}
+
+.radio-row {
+  display: flex;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+}
+
+.radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-body);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-size: 1.08rem;
+  text-transform: none;
+  color: var(--ink);
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.radio input {
+  accent-color: var(--sage);
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.field-error {
+  color: var(--rust);
+  font-size: 0.92rem;
+  margin: 0.4rem 0 0;
+}
+
+.form-error {
+  color: var(--rust);
+  border: 1px solid rgba(138, 59, 46, 0.4);
+  background: rgba(138, 59, 46, 0.06);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.success-box {
+  text-align: center;
+  border: 1px solid var(--gold-soft);
+  background: rgba(168, 153, 104, 0.1);
+  padding: 2.2rem 1.6rem;
+}
+
+.success-title {
+  font-size: 2.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.success-box p:last-child {
+  margin: 0;
+}
+
+/* ----- Songs list ----- */
+.songs-summary {
+  text-align: center;
+  color: var(--sage);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  margin-bottom: 1.4rem;
+}
+
+.songs-list {
+  list-style: none;
+  margin: 0 auto 1rem;
+  padding: 0;
+  max-width: 640px;
+}
+
+.song-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--gold-faint);
+}
+
+.song-item:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.song-title-artist {
+  font-size: 1.08rem;
+}
+
+.song-count {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--forest);
+  border: 1px solid var(--gold-soft);
+  padding: 0.1rem 0.55rem;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.song-by {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--sage);
+  font-style: italic;
+}
+
+.songs-empty {
+  text-align: center;
+  color: var(--sage);
+  font-style: italic;
+}
+
+.songs-loading {
+  text-align: center;
+  color: var(--sage);
+}
+
+/* ----- Wedding party grid ----- */
+.party-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 1.3rem;
+  margin-top: 2.4rem;
+}
+
+.party-card {
+  text-align: center;
+  padding: 2.1rem 1.3rem 1.8rem;
+}
+
+.party-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  border: 1px solid var(--gold-soft);
+  box-shadow: 0 0 0 4px var(--cream), 0 0 0 5px var(--gold-faint);
+  aspect-ratio: 1;
+}
+
+.party-role {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.68rem;
+  color: var(--sage);
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+
+.party-name {
+  font-size: 1.3rem;
+  margin: 0 0 0.5rem;
+}
+
+.party-blurb {
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ----- Gallery (masonry-ish columns + lightbox) ----- */
+.gallery-grid {
+  columns: 3;
+  column-gap: 1.2rem;
+  margin-top: 2.4rem;
+}
+
+@media (max-width: 940px) {
+  .gallery-grid { columns: 2; }
+}
+
+@media (max-width: 560px) {
+  .gallery-grid { columns: 1; }
+}
+
+.gallery-tile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  margin: 0 0 1.2rem;
+  break-inside: avoid;
+  font: inherit;
+  color: inherit;
+}
+
+.gallery-tile .photo-slot {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gallery-tile:hover .photo-slot,
+.gallery-tile:focus-visible .photo-slot {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft);
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(46, 64, 56, 0.93);
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.lightbox[hidden] {
+  display: none;
+}
+
+.lightbox-figure {
+  margin: 0;
+  text-align: center;
+  max-width: min(760px, 92vw);
+}
+
+#lightbox-art .photo-slot {
+  width: 100%;
+  max-height: 70vh;
+  margin-inline: auto;
+  background:
+    linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(90, 97, 82, 0.2)),
+    repeating-linear-gradient(45deg, rgba(245, 241, 232, 0.05) 0 2px, transparent 2px 9px);
+  color: rgba(245, 241, 232, 0.9);
+  border-color: rgba(245, 241, 232, 0.4);
+}
+
+#lightbox-art img {
+  max-height: 70vh;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+.lightbox-caption {
+  color: var(--cream);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.8rem;
+  margin-top: 1.1rem;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.3rem;
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  color: var(--cream);
+  font-size: 1.15rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 1px solid var(--gold-soft);
+  color: var(--cream);
+  font-size: 1.9rem;
+  line-height: 1;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.lightbox-prev { left: 1.1rem; }
+.lightbox-next { right: 1.1rem; }
+
+.lightbox-close:hover,
+.lightbox-nav:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ----- FAQ accordion ----- */
+.faq-list {
+  max-width: 720px;
+  margin: 2.2rem auto 0;
+  padding: 0;
+}
+
+.faq-item {
+  border: 1px solid var(--gold-soft);
+  background: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.9rem;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 3rem 1rem 1.3rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--forest);
+  font-size: 1.12rem;
+  position: relative;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '+';
+  position: absolute;
+  right: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold);
+  font-size: 1.4rem;
+}
+
+.faq-item[open] summary::after {
+  content: '–';
+}
+
+.faq-answer {
+  padding: 0 1.3rem 1.15rem;
+  margin: 0;
+}
+
+/* ----- Registry ----- */
+.registry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.3rem;
+  margin-top: 2.4rem;
+}
+
+.registry-card {
+  text-align: center;
+  padding: 2.2rem 1.4rem 2rem;
+}
+
+.registry-glyph {
+  font-size: 1.6rem;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.registry-store {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+
+.registry-note {
+  font-size: 0.95rem;
+  color: var(--sage);
+  margin-bottom: 1.3rem;
+}
+
+/* ----- Travel ----- */
+.travel-section {
+  margin-top: 2.8rem;
+}
+
+.venue-card {
+  text-align: center;
+  padding: 2.4rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.venue-name {
+  font-size: 1.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.hotels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.6rem;
+}
+
+.hotel-card {
+  text-align: center;
+  padding: 1.8rem 1.3rem 1.5rem;
+}
+
+.hotel-name {
+  font-size: 1.15rem;
+  margin-bottom: 0.4rem;
+}
+
+.hotel-card p {
+  font-size: 0.95rem;
+  color: var(--sage);
+  margin: 0;
+}
+
+/* ----- About photos ----- */
+.about-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+  margin: 2.6rem 0;
+}
+
+.about-photo {
+  text-align: center;
+}
+
+.about-photo .photo-slot {
+  aspect-ratio: 4 / 5;
+}
+
+.about-caption {
+  margin-top: 0.6rem;
+  color: var(--sage);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+/* ----- 404 ----- */
+.lost {
+  text-align: center;
+  padding: 6rem 1rem;
+}
+
+.lost .script {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.6rem;
+}

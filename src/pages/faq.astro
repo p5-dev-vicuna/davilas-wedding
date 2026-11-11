@@ -1,0 +1,69 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+
+// ✏️ COUPLE: FAQ — edit the questions/answers in this array. Add or remove
+// entries freely; the accordion is styled <details>/<summary>, no JS needed.
+const faqs = [
+  {
+    q: 'Are children invited?',
+    a: 'We love your little ones, but this will be an adults-only celebration. Thank you for understanding!',
+    testid: 'faq-children',
+  },
+  {
+    q: 'Can I bring a plus-one?',
+    a: "Invitations are for you only unless we've personally told you otherwise. We love your people, but our guest list is set — we appreciate you understanding!",
+    testid: 'faq-plus-ones',
+  },
+  {
+    q: 'What should I wear?',
+    a: 'Wedding attire details are coming soon — check back for guidance on what to wear.',
+    testid: 'faq-attire',
+  },
+  {
+    q: 'What about parking and venue access?',
+    a: 'Details coming soon — parking and arrival instructions will be posted here once confirmed with the venue.',
+    testid: 'faq-parking',
+  },
+  {
+    q: "Can I request a song for the reception?",
+    a: 'Yes, please! Drop your dance-floor fillers on the Song Requests page — the DJ will be taking notes.',
+    testid: 'faq-songs',
+  },
+  {
+    q: 'When is the RSVP deadline?',
+    a: 'Please RSVP by [date] — watch your invitation for the official deadline.',
+    testid: 'faq-deadline',
+  },
+]
+---
+
+<Base title="FAQ" description="Frequently asked questions about Kendra & Nando's wedding.">
+  <section class="page page-narrow">
+    <header class="page-header">
+      <h1 class="section-title" data-testid="faq-heading">Frequently Asked Questions</h1>
+      <Divider />
+      <p class="lede" data-testid="faq-lede">A few things folks usually ask.</p>
+    </header>
+
+    <div class="faq-list" data-testid="faq-list">
+      {
+        faqs.map((faq) => (
+          <details class="faq-item" data-testid={faq.testid}>
+            <summary data-testid={`${faq.testid}-question`}>{faq.q}</summary>
+            <p class="faq-answer" data-testid={`${faq.testid}-answer`}>
+              {faq.a}
+            </p>
+          </details>
+        ))
+      }
+    </div>
+
+    <Divider />
+
+    <p class="center">
+      Something else on your mind? Reach out to Kendra &amp; Nando — or
+      <a href="/songs" data-testid="faq-songs-link">request a song</a> while you're here.
+    </p>
+  </section>
+</Base>

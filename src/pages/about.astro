@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro'
+import Divider from '../components/Divider.astro'
+import PhotoSlot from '../components/PhotoSlot.astro'
+---
+
+<Base title="Get to Know Us" description="How Kendra & Nando met, the proposal, and why we can't wait to celebrate with you.">
+  <section class="page page-narrow">
+    <header class="page-header">
+      <h1 class="section-title" data-testid="about-heading">Get to Know Us</h1>
+      <Divider />
+      <p class="lede" data-testid="about-lede">Two people, one ordinary day, and everything that followed.</p>
+    </header>
+
+    <!--
+      ✏️✏️✏️ COUPLE: THIS WHOLE PAGE IS YOURS TO FILL ✏️✏️✏️
+      Each section below is 2–3 sentences of placeholder text written in the
+      couple's voice. Replace the paragraphs between each comment pair with
+      your real story — keep it warm and short; brevity reads best.
+      The two photo slots at the bottom are for one photo of each of you
+      (or swap them for a single shared photo).
+    -->
+
+    <section data-testid="about-met">
+      <h2>How We Met</h2>
+      <!-- ✏️ EDIT: replace the paragraph below with your "how we met" story. -->
+      <p>
+        Every great story has a beginning, and ours started simply — two people, one ordinary day, and a
+        conversation neither of us expected to matter so much. By the time we noticed the hours had
+        slipped by, it was already obvious: this was the start of something.
+      </p>
+      <!-- ✏️ END EDIT -->
+    </section>
+
+    <Divider />
+
+    <section data-testid="about-proposal">
+      <h2>The Proposal</h2>
+      <!-- ✏️ EDIT: replace the paragraph below with the proposal story. -->
+      <p>
+        When the moment came, it wasn't grand — it was right. A quiet place, a shaking hand, a question,
+        and a yes that changed everything. We walked back into the world engaged, and we've been
+        grinning about it ever since.
+      </p>
+      <!-- ✏️ END EDIT -->
+    </section>
+
+    <Divider />
+
+    <section data-testid="about-celebrate">
+      <h2>We Can't Wait to Celebrate with You</h2>
+      <!-- ✏️ EDIT: replace the paragraph below with your own welcome note. -->
+      <p>
+        A wedding is really just a very good party with the people you love most — and that means you.
+        Thank you for being part of our story. We'll see you on October 23, 2027, with dancing shoes on
+        and hearts full.
+      </p>
+      <!-- ✏️ END EDIT -->
+    </section>
+
+    <!--
+      ✏️ COUPLE: PHOTO SLOTS — one photo per person, or replace both with a
+      single shared photo. Drop images into  public/  (e.g. public/kendra.jpg)
+      and swap each <PhotoSlot /> for:  <img src="/kendra.jpg" alt="Kendra" />
+    -->
+    <div class="about-photos">
+      <figure class="about-photo" data-testid="about-photo-1">
+        <PhotoSlot label="Kendra" ratio="4 / 5" tone="sage" />
+        <figcaption class="about-caption">Kendra</figcaption>
+      </figure>
+      <figure class="about-photo" data-testid="about-photo-2">
+        <PhotoSlot label="Nando" ratio="4 / 5" tone="gold" />
+        <figcaption class="about-caption">Nando</figcaption>
+      </figure>
+    </div>
+  </section>
+</Base>
