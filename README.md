@@ -2,42 +2,78 @@
 
 Wedding website for **Kendra & Nando**, Saturday · **October 23, 2027** · 1513 at Stone Creek · Rockmart, Georgia.
 
-- **Astro** static site (one page per section, fully static `dist/` output)
-- **Hono** (Node) server that serves the built site **and** the API from one process
-- **Neon Postgres** via `@neondatabase/serverless` (HTTP driver — no persistent connections)
-- Vanilla CSS, one stylesheet, design tokens from the couple's save-the-date
-- Vitest unit tests + Playwright E2E tests (every assertion via `data-testid`)
+> **This is the `bun-native` experiment branch.** `main` stays the deployable
+> Astro version. This branch replaces the whole stack with Bun built-ins:
+> **zero runtime dependencies** — no Astro, no Hono, no Vitest, no database
+> driver. Requires a recent **Bun ≥ 1.4.4** (the built-in `bun lint` needs a
+> canary; the notes in `BUN_CANARY_NOTES.md` describe this machine's setup).
+
+- **Bun's fullstack server** — `Bun.serve({ routes })` with HTML imports: the
+  11 pages + styled 404 live in `pages/*.html` and are bundled by Bun itself
+  (on demand with HMR in dev, as a pre-built asset manifest in production).
+- **API on the same server** — the five `/api` endpoints are plain route
+  handlers with the same validation, rate limiting, admin guard, and CSV
+  export as the Astro/Hono version on `main`.
+- **Neon Postgres** via Bun's built-in SQL client (`import { SQL } from "bun"}`,
+  postgres dialect, plain TCP against the pooled Neon endpoint).
+- Vanilla CSS (one stylesheet, design tokens from the couple's save-the-date),
+  vanilla-JS lightbox and forms, `data-testid` everywhere the tests look.
+- `bun:test` unit tests + Playwright E2E tests (specs byte-identical to `main`).
 
 ## Run locally
 
 ```bash
-npm install
-npm run build     # build the static site into dist/
-npm start         # serve dist/ + API on http://localhost:3000
+bun install
+bun run dev        # dev server + HMR on http://localhost:3000
 ```
 
-Other scripts:
+Production:
 
-| Script             | What it does                                                 |
-| ------------------ | ------------------------------------------------------------ |
-| `npm run dev`      | Astro dev server (front-end only, no API)                    |
-| `npm test`         | Vitest unit tests (validation, dedupe/sort, rate limit, API) |
-| `npm run test:e2e` | Playwright E2E (builds, serves, tests, tears down)           |
+```bash
+bun run build      # bun build --target=bun --dts → dist/ (bundle + pages + .d.ts)
+bun run start      # cd dist && bun index.js — serves dist manifest + /api
+```
 
-For E2E first-time setup, install the browser once: `npx playwright install chromium`.
+## Scripts
+
+| Script                           | What it does                                                               |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| `bun run dev`                    | Dev server (HTML routes bundled on demand, HMR + browser console relay)    |
+| `bun run build`                  | `bun build --target=bun --dts` — production bundle + TypeScript decls      |
+| `bun run start`                  | Run the built bundle from `dist/` (pages + API, no runtime bundling)       |
+| `bun run typecheck`              | `bun check` — standalone type check, non-zero exit on errors               |
+| `bun run lint`                   | `bun lint` — built-in linter (canary), zero errors required                |
+| `bun run fmt`                    | `bun fmt` — built-in Prettier-compatible formatter                         |
+| `bun test` / `bun run test:unit` | `bun:test` unit run (validation, dedupe/sort, rate limit, live-server API) |
+| `bun run test:e2e`               | Builds, serves the production bundle, runs Playwright, tears down          |
+
+For E2E first-time setup, install the browser once: `bun x playwright install chromium`.
+
+## Git hooks (pre-commit)
+
+The quality gate lives in `.githooks/pre-commit` and runs on every commit:
+`bun fmt --staged` (auto-format only staged files + re-stage), `bun lint`,
+and `bun check`. Any failure blocks the commit. Activate it once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## Environment variables
 
-Copy `.env.example` to `.env` (the server loads it automatically; real env vars win):
+Copy `.env.example` to `.env` (Bun auto-loads `.env`; the server's tiny loader
+also reads it so the built bundle finds it from the repo root). Real env vars
+always win.
 
 ```ini
-DATABASE_URL=postgresql://user:password@ep-...neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://user:password@ep-...pooler...neon.tech/neondb?sslmode=require
 ADMIN_KEY=a-long-random-string
 # PORT=3000
 ```
 
-- **`DATABASE_URL`** — Neon connection string. Run `schema.sql` once against the
-  database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps` and
+- **`DATABASE_URL`** — Neon connection string (the **pooled** endpoint — Bun's
+  SQL client speaks plain TCP). Run `schema.sql` once against the database
+  (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps` and
   `song_requests` tables. **Until this is set, `POST /api/rsvp` and
   `POST /api/song` return 503 with a friendly message** (and `GET /api/songs`
   returns an empty list) — so the site can deploy before credentials exist.
@@ -45,8 +81,8 @@ ADMIN_KEY=a-long-random-string
   `Authorization: Bearer <ADMIN_KEY>`:
 
   ```bash
-  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps      # JSON
-  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps.csv  # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps      # JSON
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps.csv  # spreadsheet
   ```
 
 ## API
@@ -64,41 +100,35 @@ All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 
 ## Where the couple edits things
 
-- **Gallery photos** — drop files into `public/gallery/` and update the `photos`
-  array at the top of `src/pages/gallery.astro` (filenames map one-to-one to
-  tiles, in order). Clicking a tile opens the vanilla-JS lightbox automatically.
-- **Wedding party** — edit the single `party` array in the frontmatter of
-  `src/pages/wedding-party.astro` (names, roles, blurbs, photos in
+- **Gallery photos** — drop files into `public/gallery/` and edit the tiles in
+  `pages/gallery.html` (`data-full="/gallery/your-file.jpg"` + alt/caption).
+  Clicking a tile opens the vanilla-JS lightbox automatically.
+- **Wedding party** — edit the `<article class="party-card">` blocks in
+  `pages/wedding-party.html` (names, roles, blurbs, photos in
   `public/wedding-party/`).
-- **Registry URLs** — in `src/pages/registry.astro`, replace each `href: "#"`
-  in the `registries` array with the real link.
-- **Our story / hotels / driving notes / FAQ** — look for the `✏️ COUPLE:` HTML
-  comments on each page; they mark exactly what to edit.
-- **Hero photo** — instructions in the comment at the top of `src/pages/index.astro`.
-
-## Deploying on Coolify (one container)
-
-The repo's `Dockerfile` is multi-stage: a Node build stage runs `npm ci` +
-`npm run build`, a slim `node:22-slim` run stage installs prod deps only, copies
-`server/`, `shared/`, `schema.sql`, and `dist/`, and runs `CMD node server/index.js`.
-In Coolify: create a new resource from this Git repo (Dockerfile preset is
-auto-detected), set `DATABASE_URL` and `ADMIN_KEY` in the environment tab, expose
-the port (Coolify injects `PORT`; the server listens on it, default 3000), and
-deploy. Run `schema.sql` against your Neon database once (Neon's SQL editor
-works). No other moving parts — one container serves the site and the API.
-**Do not** commit `.env`; Coolify holds the real values.
+- **Registry URLs** — in `pages/registry.html`, replace each `href="#"` with
+  the real link.
+- **Our story / hotels / driving notes / FAQ** — look for the `✏️ COUPLE:`
+  HTML comments on each page; they mark exactly what to edit.
+- **Hero photo** — instructions in the comment at the top of `pages/index.html`.
 
 ## Repo layout
 
 ```
-src/pages/        one .astro page per section (+ 404)
-src/layouts/      shared header/nav/footer layout
-src/components/   Divider, PhotoSlot
-src/styles/       global.css — the whole design system (tokens at the top)
-server/           Hono app: API, static serving, rate limiting, env, db
-shared/songs.js   dedupe/sort logic shared by browser + server
-tests/unit/       Vitest unit tests
-tests/e2e/        Playwright specs (data-testid assertions)
-schema.sql        Neon Postgres tables
-Dockerfile        multi-stage build (node:22-alpine → node:22-slim)
+pages/              one .html page per route (+ 404.html), served via Bun HTML imports
+pages/scripts/      browser scripts referenced by the pages (bundled by Bun)
+public/             served verbatim: favicon, styles/global.css, gallery/, wedding-party/
+server/             Bun.serve app: routes, API, static/404 fallback, rate limiting, env, db
+shared/songs.js     dedupe/sort logic shared by browser + server
+tests/unit/         bun:test unit tests (incl. live-server API tests)
+tests/e2e/          Playwright specs (data-testid assertions) — identical to main
+scripts/            run-e2e.mjs (E2E runner), db-check.mjs (live DB counts/cleanup), shoot.mjs
+bunfig.toml         bun test/lint/fmt configuration
+tsconfig.json       bun check (typecheck) configuration
+schema.sql          Neon Postgres tables (unchanged)
+.githooks/          pre-commit hook (activate: git config core.hooksPath .githooks)
+BUN_REWRITE_REPORT.md  what changed vs main, verification output, canary workarounds
 ```
+
+**Not deployed from this branch** — `main` remains the deployable Astro
+version. See `BUN_REWRITE_REPORT.md` for the full conversion notes.

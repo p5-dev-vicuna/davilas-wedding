@@ -20,11 +20,11 @@ const sql = new SQL(process.env.DATABASE_URL);
 const command = process.argv[2] ?? "counts";
 
 async function counts() {
-  const [{ rsvpCount }, { songCount }] = await Promise.all([
-    sql`SELECT count(*)::int AS rsvpCount FROM rsvps`,
-    sql`SELECT count(*)::int AS songCount FROM song_requests`,
+  const [[rsvpRow], [songRow]] = await Promise.all([
+    sql`SELECT count(*)::int AS rsvp_count FROM rsvps`,
+    sql`SELECT count(*)::int AS song_count FROM song_requests`,
   ]);
-  return { rsvpCount, songCount };
+  return { rsvpCount: rsvpRow.rsvp_count, songCount: songRow.song_count };
 }
 
 try {
