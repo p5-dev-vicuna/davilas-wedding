@@ -10,6 +10,15 @@
 # idempotent. The preview subdomain stays a single level under parallel5.com —
 # Cloudflare Universal SSL only covers *.parallel5.com, not deeper levels.
 #
+# Clean-labels recipe: the Coolify app is configured with an http:// fqdn and
+# is_force_https_enabled=false. On this host (Coolify v4.0.0-beta.473) an
+# https fqdn makes Coolify generate Traefik labels with BOTH a certresolver
+# router and a redirect-to-https middleware, and the preview 302-loops to
+# itself. An http fqdn generates only the plain http router; Cloudflare's
+# edge SSL fronts *.parallel5.com, so an http origin is fine. Humans still
+# see the https URL everywhere (outputs, step summary, PR comment) — only
+# the origin domain stored in Coolify is http.
+#
 # Requires the COOLIFY_API_TOKEN repo secret (Bearer token for
 # https://coolify.parallel5.com).
 name: Branch preview
@@ -90,6 +99,11 @@ jobs:
           const subdomain = sanitizeBranch(BRANCH);
           if (!subdomain) fail(`branch "${BRANCH}" sanitizes to an empty subdomain`);
           const previewUrl = `https://davilas--${subdomain}.parallel5.com`;
+          // The fqdn stored in Coolify must use the http scheme (see the
+          // header comment): an https fqdn gets certresolver +
+          // redirect-to-https Traefik labels that 302-loop the preview on
+          // this host. Cloudflare's edge SSL still serves https to humans.
+          const originDomain = `http://davilas--${subdomain}.parallel5.com`;
 
           function setOutput(name, value) {
             appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
@@ -134,6 +148,9 @@ jobs:
             build_pack: "dockerfile",
             dockerfile_location: DOCKERFILE_LOCATION,
             ports_exposes: "3000",
+            // http origin from the start; the PATCH below re-asserts it and
+            // is authoritative even if the create ever rejects this field.
+            domains: originDomain,
           };
 
           let appUuid;
@@ -167,17 +184,26 @@ jobs:
           }
           if (!appUuid) fail(`no application uuid for branch "${BRANCH}"`);
 
-          // 2. Point the app at this branch's preview domain.
+          // 2. Point the app at this branch's preview domain using the
+          //    clean-labels recipe: http fqdn + force-https off. Exactly
+          //    these two fields — unknown fields (e.g. force_https_enabled)
+          //    make the API answer 422. Also heals legacy apps that were
+          //    created with an https fqdn, so this is idempotent.
           const patched = await call(`/api/v1/applications/${encodeURIComponent(appUuid)}`, {
             method: "PATCH",
-            body: JSON.stringify({ domains: previewUrl }),
+            body: JSON.stringify({
+              domains: originDomain,
+              is_force_https_enabled: false,
+            }),
           });
           if (!patched.ok) {
             fail(`PATCH fqdn responded ${patched.status}: ${patched.text.slice(0, 300)}`);
           }
-          console.log(`fqdn -> ${previewUrl}`);
+          console.log(`fqdn -> ${originDomain} (is_force_https_enabled=false)`);
 
-          // 3. Queue the deploy.
+          // 3. Queue a full deploy. force=true is what regenerates the
+          //    container's Traefik labels after the PATCH above — a plain
+          //    restart is not enough.
           const deployed = await call(
             `/api/v1/deploy?uuid=${encodeURIComponent(appUuid)}&force=true`,
           );
@@ -185,6 +211,11 @@ jobs:
             fail(`deploy responded ${deployed.status}: ${deployed.text.slice(0, 300)}`);
           }
           console.log(`deploy queued for ${appUuid} (force=true)`);
+
+          const deploymentUuid =
+            deployed.body?.deployments?.[0]?.deployment_uuid ??
+            deployed.body?.deployment_uuid;
+          if (deploymentUuid) setOutput("deployment-uuid", deploymentUuid);
 
           setOutput("preview-url", previewUrl);
           setOutput("app-uuid", appUuid);
@@ -195,6 +226,7 @@ jobs:
               "",
               `- branch: \`${BRANCH}\``,
               `- preview: ${previewUrl}`,
+              `- origin: \`${originDomain}\` (clean labels: force-https off)`,
               `- app: \`${appUuid}\``,
               `- dockerfile: \`${DOCKERFILE_LOCATION}\``,
               "",
@@ -203,6 +235,93 @@ jobs:
           console.log(`preview url: ${previewUrl}`);
           SCRIPT
           node "$RUNNER_TEMP/coolify-preview.mjs"
+
+      - name: Verify the preview is serving
+        env:
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          PREVIEW_URL: ${{ steps.coolify.outputs.preview-url }}
+          DEPLOYMENT_UUID: ${{ steps.coolify.outputs.deployment-uuid }}
+        run: |
+          cat > "$RUNNER_TEMP/wait-for-deploy.mjs" <<'SCRIPT'
+          import { appendFileSync } from "node:fs";
+
+          const API = "https://coolify.parallel5.com";
+          const TOKEN = process.env.COOLIFY_API_TOKEN;
+          const DEPLOYMENT_UUID = process.env.DEPLOYMENT_UUID;
+
+          function fail(message) {
+            console.error(`::error::${message}`);
+            process.exit(1);
+          }
+
+          if (!DEPLOYMENT_UUID) {
+            console.log("no deployment_uuid in the deploy response; skipping the poll");
+            process.exit(0);
+          }
+
+          // Same UA dance as the create/update step: Cloudflare fronts the
+          // API and 403s default library User-Agents.
+          const headers = {
+            Authorization: `Bearer ${TOKEN}`,
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0",
+          };
+
+          const POLL_SECONDS = 15;
+          const MAX_ATTEMPTS = 24; // ~6 minutes
+          let status = "unknown";
+          for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            const res = await fetch(
+              `${API}/api/v1/deployments/${encodeURIComponent(DEPLOYMENT_UUID)}`,
+              { headers },
+            );
+            const text = await res.text();
+            let body = null;
+            try {
+              body = text ? JSON.parse(text) : null;
+            } catch {
+              body = null;
+            }
+            if (!res.ok) fail(`GET deployment responded ${res.status}: ${text.slice(0, 300)}`);
+            status = body?.status ?? "unknown";
+            console.log(`deployment status: ${status} (poll ${attempt}/${MAX_ATTEMPTS})`);
+            if (status === "finished" || status === "failed") break;
+            await new Promise((resolve) => setTimeout(resolve, POLL_SECONDS * 1000));
+          }
+          if (status === "failed") fail(`deployment ${DEPLOYMENT_UUID} failed`);
+          if (status !== "finished") {
+            fail(
+              `deployment ${DEPLOYMENT_UUID} did not finish within ` +
+                `~${Math.round((MAX_ATTEMPTS * POLL_SECONDS) / 60)} min (last status: ${status})`,
+            );
+          }
+          appendFileSync(
+            process.env.GITHUB_STEP_SUMMARY,
+            ["", "#### Preview verification", "", `- deployment \`${DEPLOYMENT_UUID}\`: finished`, ""].join("\n"),
+          );
+          SCRIPT
+          node "$RUNNER_TEMP/wait-for-deploy.mjs"
+
+          # The edge/router can lag a little behind the finished deploy, so
+          # retry the URL check (1 try + 3 retries, 15s apart) before failing.
+          code=000
+          for attempt in 1 2 3 4; do
+            code=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 30 \
+              -A "Mozilla/5.0" "$PREVIEW_URL/" || true)
+            code=${code:-000}
+            echo "preview check attempt ${attempt}/4: $PREVIEW_URL/ -> $code"
+            if [ "$code" = "200" ]; then
+              break
+            fi
+            if [ "$attempt" -lt 4 ]; then
+              sleep 15
+            fi
+          done
+          if [ "$code" != "200" ]; then
+            echo "::error::preview $PREVIEW_URL/ never answered 200 (last code: $code)"
+            exit 1
+          fi
+          printf '%s\n' "- preview check: \`$PREVIEW_URL/\` -> 200" "" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment the preview URL on the PR
         # Only pull_request events have a PR to comment on (dormant today:
