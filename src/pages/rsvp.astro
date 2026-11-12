@@ -59,6 +59,7 @@ import Divider from '../components/Divider.astro'
           id="rsvp-party"
           name="party_size"
           type="number"
+          inputmode="numeric"
           min="1"
           max="10"
           step="1"
@@ -150,7 +151,10 @@ import Divider from '../components/Divider.astro'
     if (!el) return
     el.textContent = message
     el.hidden = !message
-    const input = document.getElementById(`rsvp-${errorMap[field] ?? field}`)
+    // Fieldset controls (radio rows) have no element id — fall back to name.
+    const input =
+      document.getElementById(`rsvp-${errorMap[field] ?? field}`) ??
+      form.querySelector<HTMLInputElement>(`[name="${field}"]`)
     if (input) {
       if (message) input.setAttribute('aria-invalid', 'true')
       else input.removeAttribute('aria-invalid')
@@ -212,7 +216,12 @@ import Divider from '../components/Divider.astro'
       setError('notes', 'Please keep notes under 1000 characters.')
       valid = false
     }
-    if (!valid) return
+    if (!valid) {
+      // Move focus to the first invalid field so keyboard and screen-reader
+      // users (and thumbs) land on the problem, not the bottom of the page.
+      form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      return
+    }
 
     if (submitBtn) {
       submitBtn.disabled = true

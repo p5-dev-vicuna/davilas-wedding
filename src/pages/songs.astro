@@ -71,7 +71,7 @@ import Divider from '../components/Divider.astro'
     <Divider />
 
     <section data-testid="songs-list-section" aria-label="Requests so far">
-      <h2 class="section-title" style="font-size:1.3rem;">Requests so far</h2>
+      <h2 class="section-title section-subtitle">Requests so far</h2>
       <p class="songs-summary" data-testid="songs-count"></p>
       <p class="songs-loading" data-testid="songs-loading">Loading requests…</p>
       <p class="songs-empty" data-testid="songs-empty" hidden>
@@ -213,7 +213,10 @@ import Divider from '../components/Divider.astro'
       setError('name', 'Name must be 120 characters or fewer.')
       valid = false
     }
-    if (!valid) return
+    if (!valid) {
+      form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      return
+    }
 
     if (submitBtn) {
       submitBtn.disabled = true
