@@ -6,7 +6,7 @@
   "description": "Wedding website for Kendra & Nando — The Davilas. October 23, 2027 · 1513 at Stone Creek · Rockmart, GA. Bun-native stack: no Astro, no Hono, no Vitest, no runtime dependencies.",
   "scripts": {
     "dev": "BUN_DEV=1 bun server/index.js",
-    "build": "bun build --target=bun --dts --root . --entry-naming \"[name].[ext]\" server/index.js --outdir dist",
+    "build": "bun scripts/build.mjs",
     "start": "cd dist && bun index.js",
     "typecheck": "bun check",
     "lint": "bun lint --no-script",

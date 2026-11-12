@@ -30,7 +30,7 @@ bun run dev        # dev server + HMR on http://localhost:3000
 Production:
 
 ```bash
-bun run build      # bun build --target=bun --dts → dist/ (bundle + pages + .d.ts)
+bun run build      # scripts/build.mjs (Bun.build --dts) → dist/ (bundle + pages + .d.ts)
 bun run start      # cd dist && bun index.js — serves dist manifest + /api
 ```
 
@@ -39,7 +39,7 @@ bun run start      # cd dist && bun index.js — serves dist manifest + /api
 | Script                           | What it does                                                               |
 | -------------------------------- | -------------------------------------------------------------------------- |
 | `bun run dev`                    | Dev server (HTML routes bundled on demand, HMR + browser console relay)    |
-| `bun run build`                  | `bun build --target=bun --dts` — production bundle + TypeScript decls      |
+| `bun run build`                  | `scripts/build.mjs` — `Bun.build --dts` + public/-asset URL plugin         |
 | `bun run start`                  | Run the built bundle from `dist/` (pages + API, no runtime bundling)       |
 | `bun run typecheck`              | `bun check` — standalone type check, non-zero exit on errors               |
 | `bun run lint`                   | `bun lint` — built-in linter (canary), zero errors required                |
