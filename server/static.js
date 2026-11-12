@@ -1,84 +1,91 @@
-// Static file serving for the built Astro site (dist/).
-// Deliberately NO SPA fallback: real routes only — unknown paths fall
-// through to the 404 handler in app.js, which serves dist/404.html.
-import { existsSync, readFileSync } from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+// Static file serving for public/ assets (favicon, stylesheets, gallery and
+// wedding-party photos the couple drops in later) plus the styled 404 page.
+// Deliberately NO SPA fallback: real routes only — unknown paths fall through
+// to serve404(), which serves pages/404.html with a real 404 status.
+import path from "node:path";
 
-const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
+const PROJECT_ROOT = path.resolve(import.meta.dir, "..");
+const PUBLIC_ROOT = path.join(PROJECT_ROOT, "public");
+const NOT_FOUND_PAGE = path.join(PROJECT_ROOT, "pages", "404.html");
 
 const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-  '.avif': 'image/avif',
-  '.ico': 'image/x-icon',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.otf': 'font/otf',
-  '.txt': 'text/plain; charset=utf-8',
-  '.xml': 'application/xml; charset=utf-8',
-  '.webmanifest': 'application/manifest+json',
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+  ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml",
+  ".webmanifest": "application/manifest+json",
+};
+
+/**
+ * Resolve a request path to a file in public/ and return a Response,
+ * or null when nothing matches (caller should serve the 404 page).
+ * Only extensioned files resolve — never a directory listing.
+ */
+export async function servePublicFile(req) {
+  let pathname;
+  try {
+    pathname = decodeURIComponent(new URL(req.url).pathname);
+  } catch {
+    return null;
+  }
+  if (pathname.includes("\0") || pathname.includes("..")) return null;
+  if (!path.extname(pathname)) return null;
+
+  const resolved = path.resolve(path.join(PUBLIC_ROOT, pathname));
+  if (!resolved.startsWith(PUBLIC_ROOT + path.sep)) return null; // traversal guard
+
+  const file = Bun.file(resolved);
+  try {
+    if (!(await file.exists())) return null;
+  } catch {
+    return null;
+  }
+
+  const ext = path.extname(resolved).toLowerCase();
+  return new Response(file, {
+    status: 200,
+    headers: {
+      "Content-Type": MIME[ext] ?? "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+      // No content-hashed assets live in public/ — revalidate everything.
+      "Cache-Control": "no-cache",
+    },
+  });
 }
 
 /**
- * Resolve a request path to a file in dist/ and return a Response,
- * or null when nothing matches (caller should continue/404).
- * `/about` → dist/about/index.html; `/` → dist/index.html.
+ * Serve the styled 404 page (pages/404.html) with a real 404 status.
+ * Falls back to plain text if the page can't be read for any reason.
  */
-export function serveStaticFile(c) {
-  let pathname
+export async function serve404() {
   try {
-    pathname = decodeURIComponent(c.req.path)
+    const file = Bun.file(NOT_FOUND_PAGE);
+    if (await file.exists()) {
+      return new Response(file, {
+        status: 404,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "X-Content-Type-Options": "nosniff",
+          "Cache-Control": "no-cache",
+        },
+      });
+    }
   } catch {
-    return null
+    // fall through to the plain-text 404
   }
-  if (pathname.includes('\0') || pathname.includes('..')) return null
-
-  let file = path.join(DIST, pathname)
-  if (pathname.endsWith('/') || !path.extname(pathname)) {
-    file = path.join(file, 'index.html')
-  }
-
-  const resolved = path.resolve(file)
-  if (!resolved.startsWith(DIST)) return null // traversal guard
-  if (!existsSync(resolved)) return null
-
-  let body
-  try {
-    body = readFileSync(resolved)
-  } catch {
-    return null
-  }
-
-  const ext = path.extname(resolved).toLowerCase()
-  const headers = {
-    'Content-Type': MIME[ext] ?? 'application/octet-stream',
-    'X-Content-Type-Options': 'nosniff',
-  }
-  // Astro emits content-hashed assets under dist/_astro/ — cache those forever.
-  headers['Cache-Control'] = resolved.includes(`${path.sep}_astro${path.sep}`)
-    ? 'public, max-age=31536000, immutable'
-    : 'no-cache'
-
-  return c.newResponse(body, 200, headers)
-}
-
-/** Serve the Astro 404 page (dist/404.html) with a real 404 status. */
-export function serve404(c) {
-  const file = path.join(DIST, '404.html')
-  try {
-    const body = readFileSync(file, 'utf8')
-    return c.html(body, 404)
-  } catch {
-    return c.text('Not found', 404)
-  }
+  return new Response("Not found", { status: 404 });
 }

@@ -18,18 +18,24 @@ import rsvp from "./rsvp.html";
 
 Bun.serve({
   routes: {
-    "/": index,          // bundled & served by Bun's bundler
+    "/": index, // bundled & served by Bun's bundler
     "/rsvp": rsvp,
     "/api/rsvp": {
       // HTTP method handlers, inline:
-      async POST(req) { /* validate, insert, return Response.json(...) */ },
+      async POST(req) {
+        /* validate, insert, return Response.json(...) */
+      },
     },
     "/api/songs": {
-      async GET() { /* ... */ },
+      async GET() {
+        /* ... */
+      },
     },
   },
   // fallback for unmatched routes (styled 404 lives here):
-  fetch(req) { return new Response("Not Found", { status: 404 }); },
+  fetch(req) {
+    return new Response("Not Found", { status: 404 });
+  },
 });
 ```
 
@@ -38,8 +44,8 @@ Bun.serve({
 ```ts
 Bun.serve({
   development: {
-    hmr: true,      // Hot Module Replacement (Bun v1.2.3+)
-    console: true,  // browser console logs echo to terminal over the HMR websocket
+    hmr: true, // Hot Module Replacement (Bun v1.2.3+)
+    console: true, // browser console logs echo to terminal over the HMR websocket
   },
   routes: { "/": index },
 });

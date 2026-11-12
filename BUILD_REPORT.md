@@ -15,21 +15,21 @@ A deployable wedding website for **Kendra & Nando (The Davilas)** — October 23
 
 ## Files of interest
 
-| Path | Why |
-| --- | --- |
-| `server/app.js` | Hono app: all five endpoints, admin bearer guard (timing-safe), per-IP token-bucket rate limiting, CSV export, error containment |
-| `server/validate.js` | Pure validation (RSVP + song): required fields, party 1–10 integer, caps 120/500/1000/200 + 200/200/120 |
-| `server/static.js` | Custom static handler for `dist/`: directory→`index.html`, MIME map, immutable cache for hashed `_astro/` assets, traversal guard |
-| `server/db.js` / `server/rate-limit.js` / `server/env.js` | Neon lazy init + clear 503 warnings; in-memory token bucket; tiny `.env` loader |
-| `shared/songs.js` | Dedupe key (lowercase title+artist), aggregate + sort (count desc → title → artist), first-name-only helper — shared by browser and server |
-| `src/layouts/Base.astro` | Header (monogram, 8 nav tabs in brief order, RSVP button), footer (names/date/venue, Songs + FAQ links, "Questions? Reach out…" line), fonts |
-| `src/pages/rsvp.astro` | Guest-note callout above the fields, all brief fields, inline validation, `data-testid` on every field/button/message, accept vs decline confirmations |
-| `src/pages/songs.astro` | Form → `POST /api/song`, live "Requests so far" via `GET /api/songs`, client-side dedupe/count |
-| `src/pages/wedding-party.astro` / `gallery.astro` / `registry.astro` | Editable-from-frontmatter data arrays with ✏️ COUPLE comment blocks |
-| `tests/unit/*.test.js` | 36 tests: validate (12), songs (10), rate-limit (5), api/static (9) |
-| `tests/e2e/*.spec.js` | home / rsvp (3) / songs (2) — `data-testid`-only assertions, mocked API routes for CI mode |
-| `scripts/run-e2e.mjs` | Cross-platform E2E runner; starts/stops the server it spawns (see notes) |
-| `schema.sql`, `Dockerfile`, `.env.example`, `README.md` | Database DDL, deployment, configuration, docs |
+| Path                                                                 | Why                                                                                                                                                    |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `server/app.js`                                                      | Hono app: all five endpoints, admin bearer guard (timing-safe), per-IP token-bucket rate limiting, CSV export, error containment                       |
+| `server/validate.js`                                                 | Pure validation (RSVP + song): required fields, party 1–10 integer, caps 120/500/1000/200 + 200/200/120                                                |
+| `server/static.js`                                                   | Custom static handler for `dist/`: directory→`index.html`, MIME map, immutable cache for hashed `_astro/` assets, traversal guard                      |
+| `server/db.js` / `server/rate-limit.js` / `server/env.js`            | Neon lazy init + clear 503 warnings; in-memory token bucket; tiny `.env` loader                                                                        |
+| `shared/songs.js`                                                    | Dedupe key (lowercase title+artist), aggregate + sort (count desc → title → artist), first-name-only helper — shared by browser and server             |
+| `src/layouts/Base.astro`                                             | Header (monogram, 8 nav tabs in brief order, RSVP button), footer (names/date/venue, Songs + FAQ links, "Questions? Reach out…" line), fonts           |
+| `src/pages/rsvp.astro`                                               | Guest-note callout above the fields, all brief fields, inline validation, `data-testid` on every field/button/message, accept vs decline confirmations |
+| `src/pages/songs.astro`                                              | Form → `POST /api/song`, live "Requests so far" via `GET /api/songs`, client-side dedupe/count                                                         |
+| `src/pages/wedding-party.astro` / `gallery.astro` / `registry.astro` | Editable-from-frontmatter data arrays with ✏️ COUPLE comment blocks                                                                                    |
+| `tests/unit/*.test.js`                                               | 36 tests: validate (12), songs (10), rate-limit (5), api/static (9)                                                                                    |
+| `tests/e2e/*.spec.js`                                                | home / rsvp (3) / songs (2) — `data-testid`-only assertions, mocked API routes for CI mode                                                             |
+| `scripts/run-e2e.mjs`                                                | Cross-platform E2E runner; starts/stops the server it spawns (see notes)                                                                               |
+| `schema.sql`, `Dockerfile`, `.env.example`, `README.md`              | Database DDL, deployment, configuration, docs                                                                                                          |
 
 ## Test results (actual output)
 

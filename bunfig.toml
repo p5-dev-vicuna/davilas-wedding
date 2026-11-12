@@ -1,0 +1,15 @@
+# Bun configuration for The Davilas (bun-native experiment branch).
+# The built-in fmt/lint/test tools read this file.
+
+[test]
+# Playwright e2e specs live in tests/e2e/*.spec.js — they are driven by
+# `bun run test:e2e` (Playwright), not by `bun test`. Keep them out of the
+# bun:test unit run.
+pathIgnorePatterns = ["tests/e2e/**"]
+
+[fmt]
+# The Playwright e2e specs are kept BYTE-IDENTICAL to the Astro version on
+# main (the brief's acceptance test: zero edits to the suite), and the design
+# system stylesheet is kept verbatim per the rewrite brief — don't let the
+# formatter rewrite either.
+ignorePatterns = ["tests/e2e/**", "public/styles/**"]

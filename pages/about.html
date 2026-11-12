@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get to Know Us · The Davilas</title>
+    <meta
+      name="description"
+      content="How Kendra & Nando met, the proposal, and why we can't wait to celebrate with you."
+    />
+    <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../public/styles/global.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-testid="site-header">
+      <div class="header-inner">
+        <a class="monogram" href="/" data-testid="monogram">The Davilas</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-testid="nav-toggle"
+        >
+          <span class="visually-hidden">Toggle navigation</span>
+          <span class="nav-toggle-icon" aria-hidden="true">☰</span>
+        </button>
+        <nav
+          id="site-nav"
+          class="site-nav"
+          aria-label="Main navigation"
+          data-testid="site-nav"
+        >
+          <ul>
+            <li>
+              <a href="/" data-testid="nav-home">Home</a>
+            </li>
+            <li>
+              <a href="/about" data-testid="nav-about" aria-current="page"
+                >Get to Know Us</a
+              >
+            </li>
+            <li>
+              <a href="/gallery" data-testid="nav-gallery">Gallery</a>
+            </li>
+            <li>
+              <a href="/wedding-party" data-testid="nav-wedding-party"
+                >Wedding Party</a
+              >
+            </li>
+            <li>
+              <a href="/details" data-testid="nav-details">Wedding Details</a>
+            </li>
+            <li>
+              <a href="/schedule" data-testid="nav-schedule">Schedule</a>
+            </li>
+            <li>
+              <a href="/travel" data-testid="nav-travel">Travel</a>
+            </li>
+            <li>
+              <a href="/registry" data-testid="nav-registry">Registry</a>
+            </li>
+          </ul>
+        </nav>
+        <!-- RSVP: the standout header button, opposite the nav, on every page. -->
+        <a class="btn header-rsvp" href="/rsvp" data-testid="header-rsvp"
+          >RSVP</a
+        >
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page page-narrow">
+        <header class="page-header">
+          <h1 class="section-title" data-testid="about-heading">
+            Get to Know Us
+          </h1>
+          <div class="divider" role="separator" aria-hidden="true">
+            <span class="divider-rule"></span>
+            <span class="divider-glyph">❦</span>
+            <span class="divider-rule"></span>
+          </div>
+          <p class="lede" data-testid="about-lede">
+            Two people, one ordinary day, and everything that followed.
+          </p>
+        </header>
+
+        <!--
+          ✏️✏️✏️ COUPLE: THIS WHOLE PAGE IS YOURS TO FILL ✏️✏️✏️
+          Each section below is 2–3 sentences of placeholder text written in the
+          couple's voice. Replace the paragraphs between each comment pair with
+          your real story — keep it warm and short; brevity reads best.
+          The two photo slots at the bottom are for one photo of each of you
+          (or swap them for a single shared photo).
+        -->
+
+        <section data-testid="about-met">
+          <h2>How We Met</h2>
+          <!-- ✏️ EDIT: replace the paragraph below with your "how we met" story. -->
+          <p>
+            Every great story has a beginning, and ours started simply — two
+            people, one ordinary day, and a conversation neither of us expected
+            to matter so much. By the time we noticed the hours had slipped by,
+            it was already obvious: this was the start of something.
+          </p>
+          <!-- ✏️ END EDIT -->
+        </section>
+
+        <div class="divider" role="separator" aria-hidden="true">
+          <span class="divider-rule"></span>
+          <span class="divider-glyph">❦</span>
+          <span class="divider-rule"></span>
+        </div>
+
+        <section data-testid="about-proposal">
+          <h2>The Proposal</h2>
+          <!-- ✏️ EDIT: replace the paragraph below with the proposal story. -->
+          <p>
+            When the moment came, it wasn't grand — it was right. A quiet place,
+            a shaking hand, a question, and a yes that changed everything. We
+            walked back into the world engaged, and we've been grinning about it
+            ever since.
+          </p>
+          <!-- ✏️ END EDIT -->
+        </section>
+
+        <div class="divider" role="separator" aria-hidden="true">
+          <span class="divider-rule"></span>
+          <span class="divider-glyph">❦</span>
+          <span class="divider-rule"></span>
+        </div>
+
+        <section data-testid="about-celebrate">
+          <h2>We Can't Wait to Celebrate with You</h2>
+          <!-- ✏️ EDIT: replace the paragraph below with your own welcome note. -->
+          <p>
+            A wedding is really just a very good party with the people you love
+            most — and that means you. Thank you for being part of our story.
+            We'll see you on October 23, 2027, with dancing shoes on and hearts
+            full.
+          </p>
+          <!-- ✏️ END EDIT -->
+        </section>
+
+        <!--
+          ✏️ COUPLE: PHOTO SLOTS — one photo per person, or replace both with a
+          single shared photo. Drop images into  public/  (e.g. public/kendra.jpg)
+          and swap each <figure class="photo-slot" …> for:  <img src="/kendra.jpg" alt="Kendra" />
+        -->
+        <div class="about-photos">
+          <figure class="about-photo" data-testid="about-photo-1">
+            <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 5">
+              <span class="photo-glyph" aria-hidden="true">❦</span>
+              <figcaption class="photo-label">Kendra</figcaption>
+            </figure>
+            <figcaption class="about-caption">Kendra</figcaption>
+          </figure>
+          <figure class="about-photo" data-testid="about-photo-2">
+            <figure class="photo-slot tone-gold" style="aspect-ratio: 4 / 5">
+              <span class="photo-glyph" aria-hidden="true">❦</span>
+              <figcaption class="photo-label">Nando</figcaption>
+            </figure>
+            <figcaption class="about-caption">Nando</figcaption>
+          </figure>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-testid="site-footer">
+      <p class="footer-names script">Kendra &amp; Nando</p>
+      <p class="footer-line" data-testid="footer-event-line">
+        Saturday, October 23, 2027 · 1513 at Stone Creek · Rockmart, Georgia
+      </p>
+      <div class="divider divider-light" aria-hidden="true">
+        <span class="divider-rule"></span>
+        <span class="divider-glyph">❦</span>
+        <span class="divider-rule"></span>
+      </div>
+      <nav class="footer-links" aria-label="Footer" data-testid="footer-nav">
+        <a href="/songs" data-testid="footer-songs-link">Song Requests</a>
+        <span aria-hidden="true">·</span>
+        <a href="/faq" data-testid="footer-faq-link">FAQ</a>
+      </nav>
+      <p class="footer-contact">
+        Questions? Reach out to Kendra &amp; Nando — we can't wait to celebrate
+        with you.
+      </p>
+      <p class="fineprint" aria-hidden="true">
+        ❦ with love, from the soon-to-be Davilas ❦
+      </p>
+    </footer>
+
+    <script>
+      const header = document.querySelector(".site-header");
+      const toggle = document.querySelector(".nav-toggle");
+
+      toggle?.addEventListener("click", () => {
+        const open = header.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+        const icon = toggle.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = open ? "✕" : "☰";
+      });
+
+      // Close the mobile menu after choosing a destination.
+      document.querySelectorAll(".site-nav a").forEach((link) =>
+        link.addEventListener("click", () => {
+          header.classList.remove("open");
+          toggle?.setAttribute("aria-expanded", "false");
+          const icon = toggle?.querySelector(".nav-toggle-icon");
+          if (icon) icon.textContent = "☰";
+        }),
+      );
+    </script>
+  </body>
+</html>

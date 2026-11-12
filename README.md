@@ -18,11 +18,11 @@ npm start         # serve dist/ + API on http://localhost:3000
 
 Other scripts:
 
-| Script              | What it does                                             |
-| ------------------- | -------------------------------------------------------- |
-| `npm run dev`       | Astro dev server (front-end only, no API)                |
-| `npm test`          | Vitest unit tests (validation, dedupe/sort, rate limit, API) |
-| `npm run test:e2e`  | Playwright E2E (builds, serves, tests, tears down)       |
+| Script             | What it does                                                 |
+| ------------------ | ------------------------------------------------------------ |
+| `npm run dev`      | Astro dev server (front-end only, no API)                    |
+| `npm test`         | Vitest unit tests (validation, dedupe/sort, rate limit, API) |
+| `npm run test:e2e` | Playwright E2E (builds, serves, tests, tears down)           |
 
 For E2E first-time setup, install the browser once: `npx playwright install chromium`.
 
@@ -51,13 +51,13 @@ ADMIN_KEY=a-long-random-string
 
 ## API
 
-| Endpoint         | Method | Auth    | Notes                                            |
-| ---------------- | ------ | ------- | ------------------------------------------------ |
-| `/api/rsvp`      | POST   | —       | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
-| `/api/song`      | POST   | —       | Validates (title/artist/name), inserts into `song_requests` |
-| `/api/songs`     | GET    | —       | Latest 100 requests; first names only            |
-| `/api/rsvps`     | GET    | ADMIN_KEY | All RSVPs as JSON                              |
-| `/api/rsvps.csv` | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)              |
+| Endpoint         | Method | Auth      | Notes                                                                 |
+| ---------------- | ------ | --------- | --------------------------------------------------------------------- |
+| `/api/rsvp`      | POST   | —         | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
+| `/api/song`      | POST   | —         | Validates (title/artist/name), inserts into `song_requests`           |
+| `/api/songs`     | GET    | —         | Latest 100 requests; first names only                                 |
+| `/api/rsvps`     | GET    | ADMIN_KEY | All RSVPs as JSON                                                     |
+| `/api/rsvps.csv` | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)                                     |
 
 All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 (token bucket), and DB errors are never leaked to clients (logged server-side only).

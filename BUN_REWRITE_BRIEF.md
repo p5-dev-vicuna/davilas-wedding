@@ -18,7 +18,44 @@ Non-negotiable: **zero content, design, or behavior regressions.** Every page, e
 8. **Precommit hook**: git precommit that runs `bun fmt --staged` (auto-fix + re-stage), `bun lint`, and the type-check script — commit blocked if any fails. Use a plain `.git/hooks/precommit` script (no husky dependency — bun-native means fewer deps) committed via `core.hooksPath` (e.g., `.githooks/` + `git config core.hooksPath .githooks`, documented in README) so it survives clones.
 9. **package.json scripts** (bun-run): `dev` (bun dev server + HMR), `start` (production: bun runs the built bundle), `build` (bun build --dts), `typecheck`, `lint` (bun lint), `fmt` (bun fmt), `test` (bun test), `test:e2e`. Document each in README.
 
+## Dockerfile.bun — hard requirements (Coolify deploy of this branch)
+
+Do NOT use npm/npx/yarn anywhere in the image. Every step that touches JS runs bun-native commands.
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM oven/bun:canary AS deps
+WORKDIR /app
+# lockfile-hash keyed layer: these two COPY lines are the turbo-style cache primitive —
+# this layer (and only this layer) invalidates when package.json or bun.lock change.
+COPY package.json bun.lock ./
+# frozen-lockfile = the hash check: hard-fails if lock and manifest disagree. Never --no-frozen-lockfile.
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
+
+FROM oven/bun:canary AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN bun build --dts [server entrypoint per final layout] && bun run build:client
+
+FROM oven/bun:canary-slim AS runtime   # use the slim/debian variant if the tag exists on canary; else plain oven/bun:canary
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app/dist ./dist
+COPY --from=deps /app/node_modules ./node_modules
+COPY server ./server        # adjust to the final layout: whatever the runtime actually needs
+EXPOSE 3000
+CMD ["bun", "server/index.ts"]   # bun-native entry, adjust to final layout
+```
+
+- Verify `oven/bun:canary` (and `-slim`/`-alpine` variants) tag names against Docker Hub before finalizing; pin a dated canary tag if available (reproducibility) and record the digest in the report.
+- BuildKit `--mount=type=cache` on Bun's install cache is required (Coolify enables BuildKit; note it in the report if it must be toggled).
+- `.dockerignore` must exclude `node_modules`, `dist`, `screenshots`, `test-results`, `.git`.
+- Keep the existing Node `Dockerfile` untouched — it serves `main`. The bun branch uses `Dockerfile.bun` (Coolify app for this branch points at it via the Dockerfile field).
+
 ## Verification (all required before reporting done)
+
+- If Docker is available locally, `docker build -f Dockerfile.bun .` must succeed and the second consecutive build must hit the cached deps layer (proves the lockfile-hash cache works). If Docker is NOT available locally, say so plainly in the report and validate the Dockerfile by inspection — the real build happens on the Coolify host at deploy time, which is out of scope for this run.
 
 - `bun test` — all unit tests pass (ported from Vitest).
 - `bun run test:e2e` — Playwright suite passes **unmodified in its assertions**.
