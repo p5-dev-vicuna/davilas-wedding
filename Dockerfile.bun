@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Dockerfile.bun — Coolify deploy image for the `bun-native` branch.
 # Bun-native only: no npm/npx/yarn anywhere in the image. `main` keeps the
 # Node-based Dockerfile; the Coolify app for this branch points here.
