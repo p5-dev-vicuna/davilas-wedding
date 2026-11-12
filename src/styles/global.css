@@ -1335,48 +1335,73 @@ textarea {
   margin-bottom: 0.6rem;
 }
 
-/* ----- Stained glass: Daniel Cottier window, c. 1877-80 -----
-   Photo crops of a real window in The Met's collection (public domain / CC0):
-   https://www.metmuseum.org/art/collection/search/838139
-   Crops live in public/glass/ (taken from the original 2518x4000 photo; panel at 552,234).
-   Wide screens: a wood-framed crop in each side gutter (different flowers each side).
-   Phones/tablets (most guests): a slim wood bar under the header and a full-width band of
-   the glass resting on the footer, each in its own row.
+/* ----- Stained glass: John Scott Bradstreet window, 1906-08 -----
+   Photo crops of a real window in The Met's collection (public domain / CC0), with the
+   green leaf glass shifted to fall amber/rust:
+   https://www.metmuseum.org/art/collection/search/20531
+   Pieces in public/glass/: leaf canopy (top), vine trunk (repeats), roots (bottom), and
+   one panel's canopy for the phone transom (tiles sideways).
+   Wide screens: a page-height leaded window in each side gutter, part of the page (scrolls
+   with it, never under the header or footer); the home hero is inset between them.
+   Phones/tablets (most guests): a slim oak bar under the header and a band of leaf panes
+   resting on the footer, each in its own row.
    To remove the whole feature: delete this section and public/glass/. */
 :root {
-  --wood: #3b2418;
-  --glass-dark: #0b0f10;
+  --oak: #8a5d33;
+  --clear-glass: #ece9e3;
 }
 
 @media (min-width: 1440px) {
-  body::before,
-  body::after {
-    content: '';
-    position: fixed;
-    top: 84px;
-    bottom: 24px;
-    width: min(150px, calc((100vw - 1180px) / 2 - 40px));
-    border: 7px solid var(--wood);
-    outline: 1px solid var(--gold);
-    outline-offset: -4px;
-    background: var(--glass-dark) url('/glass/cottier-left.webp') center / cover no-repeat;
-    pointer-events: none;
-    z-index: 0;
+  :root {
+    --win-w: min(150px, calc((100vw - 1180px) / 2 - 40px));
   }
 
-  body::before {
+  main {
+    position: relative;
+  }
+
+  main::before,
+  main::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    bottom: 24px;
+    width: calc(var(--win-w) + 14px);
+    border: 7px solid var(--oak);
+    outline: 1px solid var(--gold);
+    outline-offset: -4px;
+    /* canopy and roots sit in the padding; the trunk fills the content box in whole panes */
+    padding-top: calc(var(--win-w) * 2.3433);
+    padding-bottom: calc(var(--win-w) * 1.0933);
+    background:
+      url('/glass/bradstreet-top.webp') top / 100% auto no-repeat,
+      url('/glass/bradstreet-roots.webp') bottom / 100% auto no-repeat,
+      url('/glass/bradstreet-trunk.webp') top / 100% auto no-repeat round,
+      var(--clear-glass);
+    background-origin: padding-box, padding-box, content-box, padding-box;
+    background-clip: padding-box, padding-box, content-box, padding-box;
+    pointer-events: none;
+  }
+
+  main::before {
     left: 20px;
   }
 
-  body::after {
+  /* mirrored, like the original window's right-hand panel */
+  main::after {
     right: 20px;
-    background-image: url('/glass/cottier-right.webp');
+    transform: scaleX(-1);
   }
 
-  main,
-  .site-footer {
-    position: relative;
-    z-index: 1;
+  /* too short for a full window (the 404 page) */
+  main:has(.lost)::before,
+  main:has(.lost)::after {
+    display: none;
+  }
+
+  /* full-width hero sits between the windows instead of under them */
+  .hero {
+    margin-inline: calc(var(--win-w) + 54px);
   }
 }
 
@@ -1388,24 +1413,23 @@ textarea {
     pointer-events: none;
   }
 
-  /* slim wood bar with a gold line, like the window's oak frame; scrolls away */
+  /* slim oak bar with a gold line, like the window's frame; scrolls away */
   main::before {
     height: 7px;
-    background: var(--wood);
+    background: var(--oak);
     border-bottom: 1px solid var(--gold);
   }
 
-  /* transom: a full-width band of the glass, framed in wood */
+  /* transom: a row of leaf-canopy panes framed in oak */
   main::after {
     margin-top: 2.4rem;
-    aspect-ratio: 800 / 190;
-    max-height: 150px;
-    border-top: 5px solid var(--wood);
-    border-bottom: 4px solid var(--wood);
+    height: clamp(76px, 20vw, 112px);
+    border-top: 5px solid var(--oak);
+    border-bottom: 4px solid var(--oak);
     background:
       linear-gradient(var(--gold), var(--gold)) top / 100% 1px no-repeat,
-      url('/glass/cottier-transom.webp') center / cover no-repeat,
-      var(--glass-dark);
+      url('/glass/bradstreet-transom.webp') center / auto 100% repeat-x,
+      var(--clear-glass);
   }
 
   /* the transom now provides the gap above the footer */
