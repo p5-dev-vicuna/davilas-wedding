@@ -30,6 +30,19 @@
 // output, but Bun.build's entryNaming option does NOT flatten HTML
 // entries (they land at dist/pages/*.html, breaking `cd dist && bun
 // index.js`). The `naming` object form reproduces the CLI layout exactly.
+//
+// Cwd note: Bun's runtime resolves the per-page asset manifests embedded
+// in the bundle ({"index":"./index.html","files":[{"path":"./index-<hash>.js"},…]})
+// against process.cwd(), NOT against the bundle's own directory. When the
+// caller's cwd is anywhere but dist/ — e.g. `bun dist/index.js` from the
+// repo root — Bun.serve dies at startup: `TypeError: Bundled file
+// "./index-<hash>.js" not found`. The `banner` below pins the cwd to the
+// bundle directory before any module code runs, so `cd dist && bun
+// index.js`, `bun dist/index.js`, and the distroless `CMD ["index.js"]`
+// (WORKDIR /app/dist) all resolve the manifest identically. Everything
+// else the server touches (public/, pages/404.html, .env) already resolves
+// from import.meta paths in server/static.js and server/env.js, so the
+// chdir affects the manifest resolution and nothing else.
 import path from "node:path";
 import { readdir, rm } from "node:fs/promises";
 
@@ -61,6 +74,10 @@ const config = {
   root: ROOT,
   entrypoints: [path.join(ROOT, "server", "index.js")],
   outdir: DIST,
+  // Injected verbatim at the very top of dist/index.js — before the
+  // inlined module bodies and long before createApp() — so the embedded
+  // HTML manifests always resolve against dist/ (see "Cwd note" above).
+  banner: "process.chdir(import.meta.dir);",
   // entry flat at dist/index.js (the runtime starts `cd dist && bun
   // index.js`); chunks/assets keep the default content-hashed names —
   // together, byte-for-byte the layout the old CLI command produced.
@@ -133,6 +150,7 @@ for (const file of await collectTextFiles(DIST)) {
 // subresource URLs are bundled).
 const home = await Bun.file(path.join(DIST, "index.html")).text();
 const gallery = await Bun.file(path.join(DIST, "gallery.html")).text();
+const bundle = await Bun.file(path.join(DIST, "index.js")).text();
 const checks = [
   [restored > 0, "no masked URLs were restored"],
   [
@@ -147,6 +165,11 @@ const checks = [
   [
     await Bun.file(path.join(DIST, "index.js")).exists(),
     "dist/index.js is missing — server bundle layout changed",
+  ],
+  [
+    bundle.includes("process.chdir(import.meta.dir);"),
+    "dist/index.js lost the cwd-pinning banner — the bundle would only " +
+      "boot with the caller's cwd already inside dist/",
   ],
 ];
 const failed = checks.filter(([ok]) => !ok).map(([, why]) => why);

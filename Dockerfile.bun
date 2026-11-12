@@ -48,8 +48,9 @@ ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/pages/404.html ./pages/404.html
 COPY --from=build /app/public ./public
-# Bun resolves the built asset manifest relative to the process CWD, so the
-# entry must run from inside dist/ — same as `bun run start`.
+# The bundle pins process.cwd() to its own directory at startup (banner in
+# scripts/build.mjs), so the embedded asset manifest resolves no matter how
+# the entry is invoked; WORKDIR /app/dist keeps parity with `bun run start`.
 WORKDIR /app/dist
 EXPOSE 3000
 # distroless ENTRYPOINT is the bun binary itself, so CMD is the script path
