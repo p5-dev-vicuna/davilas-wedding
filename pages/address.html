@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mailing Address · The Davilas</title>
+    <meta
+      name="description"
+      content="Beat the RSVP rush — give Kendra & Nando your current mailing address so your invitation finds you."
+    />
+    <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../public/styles/global.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-testid="site-header">
+      <div class="header-inner">
+        <a class="monogram" href="/" data-testid="monogram">The Davilas</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-testid="nav-toggle"
+        >
+          <span class="visually-hidden">Toggle navigation</span>
+          <span class="nav-toggle-icon" aria-hidden="true">☰</span>
+        </button>
+        <nav
+          id="site-nav"
+          class="site-nav"
+          aria-label="Main navigation"
+          data-testid="site-nav"
+        >
+          <ul>
+            <li>
+              <a href="/" data-testid="nav-home">Home</a>
+            </li>
+            <li>
+              <a href="/about" data-testid="nav-about">Get to Know Us</a>
+            </li>
+            <li>
+              <a href="/gallery" data-testid="nav-gallery">Gallery</a>
+            </li>
+            <li>
+              <a href="/wedding-party" data-testid="nav-wedding-party"
+                >Wedding Party</a
+              >
+            </li>
+            <li>
+              <a href="/details" data-testid="nav-details">Wedding Details</a>
+            </li>
+            <li>
+              <a href="/schedule" data-testid="nav-schedule">Schedule</a>
+            </li>
+            <li>
+              <a href="/travel" data-testid="nav-travel">Travel</a>
+            </li>
+            <li>
+              <a href="/registry" data-testid="nav-registry">Registry</a>
+            </li>
+          </ul>
+        </nav>
+        <!-- RSVP: the standout header button, opposite the nav, on every page. -->
+        <a class="btn header-rsvp" href="/rsvp" data-testid="header-rsvp"
+          >RSVP</a
+        >
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page page-narrow">
+        <header class="page-header">
+          <p class="script script-accent" data-testid="address-accent">
+            Don't lose us in the mail
+          </p>
+          <h1 class="section-title" data-testid="address-heading">
+            Where should we send your invitation?
+          </h1>
+          <div class="divider" role="separator" aria-hidden="true">
+            <span class="divider-rule"></span>
+            <span class="divider-glyph">❦</span>
+            <span class="divider-rule"></span>
+          </div>
+          <p class="lede" data-testid="address-lede">
+            Beat the RSVP rush — give us your current mailing address now, so
+            your invitation finds you wherever you land.
+          </p>
+        </header>
+
+        <form
+          id="address-form"
+          class="form"
+          novalidate
+          data-testid="address-form"
+        >
+          <div class="field">
+            <label for="address-name">Full name(s)</label>
+            <p class="field-hint" id="address-name-hint">
+              For the envelope — e.g. 'Fernanda &amp; Alex Davila'
+            </p>
+            <input
+              id="address-name"
+              name="full_name"
+              type="text"
+              autocomplete="name"
+              aria-describedby="address-name-hint"
+              required
+              maxlength="120"
+              placeholder="Names as they should appear on the envelope"
+              data-testid="address-name"
+            />
+            <p class="field-error" data-testid="address-name-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="address-street">Street address</label>
+            <input
+              id="address-street"
+              name="street"
+              type="text"
+              autocomplete="address-line1"
+              required
+              maxlength="200"
+              placeholder="123 Wedding Way"
+              data-testid="address-street"
+            />
+            <p
+              class="field-error"
+              data-testid="address-street-error"
+              hidden
+            ></p>
+          </div>
+
+          <div class="field">
+            <label for="address-unit"
+              >Apt / unit <span class="optional">(optional)</span></label
+            >
+            <input
+              id="address-unit"
+              name="unit"
+              type="text"
+              autocomplete="address-line2"
+              maxlength="30"
+              placeholder="Apt 4B"
+              data-testid="address-unit"
+            />
+            <p class="field-error" data-testid="address-unit-error" hidden></p>
+          </div>
+
+          <div class="address-city-row">
+            <div class="field">
+              <label for="address-city">City</label>
+              <input
+                id="address-city"
+                name="city"
+                type="text"
+                autocomplete="address-level2"
+                required
+                maxlength="100"
+                placeholder="Rockmart"
+                data-testid="address-city"
+              />
+              <p
+                class="field-error"
+                data-testid="address-city-error"
+                hidden
+              ></p>
+            </div>
+
+            <div class="field">
+              <label for="address-state">State</label>
+              <input
+                id="address-state"
+                name="state"
+                type="text"
+                autocomplete="address-level1"
+                required
+                maxlength="50"
+                placeholder="GA"
+                data-testid="address-state"
+              />
+              <p
+                class="field-error"
+                data-testid="address-state-error"
+                hidden
+              ></p>
+            </div>
+
+            <div class="field">
+              <label for="address-zip">ZIP / postal code</label>
+              <input
+                id="address-zip"
+                name="postal_code"
+                type="text"
+                autocomplete="postal-code"
+                required
+                maxlength="20"
+                placeholder="30153"
+                data-testid="address-zip"
+              />
+              <p class="field-error" data-testid="address-zip-error" hidden></p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="address-country"
+              >Country
+              <span class="optional">(optional — we'll assume USA)</span></label
+            >
+            <input
+              id="address-country"
+              name="country"
+              type="text"
+              autocomplete="country-name"
+              maxlength="100"
+              value="USA"
+              data-testid="address-country"
+            />
+            <p
+              class="field-error"
+              data-testid="address-country-error"
+              hidden
+            ></p>
+          </div>
+
+          <div class="field">
+            <label for="address-notes"
+              >Anything we should know?
+              <span class="optional">(optional)</span></label
+            >
+            <textarea
+              id="address-notes"
+              name="notes"
+              rows="3"
+              maxlength="500"
+              placeholder="e.g. we're moving in June"
+              data-testid="address-notes"
+            ></textarea>
+            <p class="field-error" data-testid="address-notes-error" hidden></p>
+          </div>
+
+          <p class="form-error" data-testid="address-form-error" hidden></p>
+
+          <div class="form-actions">
+            <button class="btn" type="submit" data-testid="address-submit">
+              Send Address
+            </button>
+          </div>
+        </form>
+
+        <div class="success-box" data-testid="address-success" hidden>
+          <p class="script success-title">coming your way!</p>
+          <p data-testid="address-success-text">
+            Sealed and delivered — you're on the list. 💌
+          </p>
+        </div>
+
+        <div class="divider" role="separator" aria-hidden="true">
+          <span class="divider-rule"></span>
+          <span class="divider-glyph">❦</span>
+          <span class="divider-rule"></span>
+        </div>
+
+        <p class="center" data-testid="address-rsvp-teaser">
+          Already know you're coming?
+          <a href="/rsvp" data-testid="address-rsvp-link">RSVP here →</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-testid="site-footer">
+      <p class="footer-names script">Kendra &amp; Nando</p>
+      <p class="footer-line" data-testid="footer-event-line">
+        Saturday, October 23, 2027 · 1513 at Stone Creek · Rockmart, Georgia
+      </p>
+      <div class="divider divider-light" aria-hidden="true">
+        <span class="divider-rule"></span>
+        <span class="divider-glyph">❦</span>
+        <span class="divider-rule"></span>
+      </div>
+      <nav class="footer-links" aria-label="Footer" data-testid="footer-nav">
+        <a href="/songs" data-testid="footer-songs-link">Song Requests</a>
+        <span aria-hidden="true">·</span>
+        <a href="/faq" data-testid="footer-faq-link">FAQ</a>
+        <span aria-hidden="true">·</span>
+        <a href="/address" data-testid="footer-address-link">Addresses</a>
+      </nav>
+      <p class="footer-contact">
+        Questions? Reach out to Kendra &amp; Nando — we can't wait to celebrate
+        with you.
+      </p>
+      <p class="fineprint" aria-hidden="true">
+        ❦ with love, from the soon-to-be Davilas ❦
+      </p>
+    </footer>
+
+    <script>
+      const header = document.querySelector(".site-header");
+      const toggle = document.querySelector(".nav-toggle");
+
+      toggle?.addEventListener("click", () => {
+        const open = header.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+        const icon = toggle.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = open ? "✕" : "☰";
+      });
+
+      // Close the mobile menu after choosing a destination.
+      document.querySelectorAll(".site-nav a").forEach((link) =>
+        link.addEventListener("click", () => {
+          header.classList.remove("open");
+          toggle?.setAttribute("aria-expanded", "false");
+          const icon = toggle?.querySelector(".nav-toggle-icon");
+          if (icon) icon.textContent = "☰";
+        }),
+      );
+    </script>
+
+    <script>
+      const form = document.getElementById("address-form");
+      const submitBtn = document.querySelector(
+        '[data-testid="address-submit"]',
+      );
+      const formError = document.querySelector(
+        '[data-testid="address-form-error"]',
+      );
+      const successBox = document.querySelector(
+        '[data-testid="address-success"]',
+      );
+      const successText = document.querySelector(
+        '[data-testid="address-success-text"]',
+      );
+
+      // Personal link token (?g=<token>) — silent by design: nothing renders
+      // it, it just rides along with the submission so the couple can
+      // cross-reference guest_tokens.csv. Absent token is fine — the form
+      // works either way.
+      const guestToken =
+        new URLSearchParams(window.location.search)
+          .get("g")
+          ?.trim()
+          .slice(0, 64) ?? "";
+
+      // server field name -> testid infix used on this page
+      const errorMap = {
+        full_name: "name",
+        street: "street",
+        unit: "unit",
+        city: "city",
+        state: "state",
+        postal_code: "zip",
+        country: "country",
+        notes: "notes",
+      };
+
+      function fieldErrorEl(field) {
+        const infix = errorMap[field] ?? field;
+        return document.querySelector(`[data-testid="address-${infix}-error"]`);
+      }
+
+      function setError(field, message) {
+        const el = fieldErrorEl(field);
+        if (!el) return;
+        el.textContent = message;
+        el.hidden = !message;
+        const input = document.getElementById(
+          `address-${errorMap[field] ?? field}`,
+        );
+        if (input) {
+          if (message) input.setAttribute("aria-invalid", "true");
+          else input.removeAttribute("aria-invalid");
+        }
+      }
+
+      function clearErrors() {
+        for (const field of Object.keys(errorMap)) setError(field, "");
+        if (formError) {
+          formError.textContent = "";
+          formError.hidden = true;
+        }
+      }
+
+      function setFormError(message) {
+        if (!formError) return;
+        formError.textContent = message;
+        formError.hidden = !message;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearErrors();
+
+        const fullName = form.elements.namedItem("full_name").value;
+        const street = form.elements.namedItem("street").value;
+        const unit = form.elements.namedItem("unit").value;
+        const city = form.elements.namedItem("city").value;
+        const state = form.elements.namedItem("state").value;
+        const zip = form.elements.namedItem("postal_code").value;
+        const country = form.elements.namedItem("country").value;
+        const notes = form.elements.namedItem("notes").value;
+
+        let valid = true;
+        if (!fullName.trim()) {
+          setError("full_name", "Please add the name(s) for your envelope.");
+          valid = false;
+        } else if (fullName.trim().length > 120) {
+          setError("full_name", "Name must be 120 characters or fewer.");
+          valid = false;
+        }
+        if (!street.trim()) {
+          setError("street", "Please add your street address.");
+          valid = false;
+        } else if (street.trim().length > 200) {
+          setError("street", "Street address must be 200 characters or fewer.");
+          valid = false;
+        }
+        if (unit.trim().length > 30) {
+          setError("unit", "Apt / unit must be 30 characters or fewer.");
+          valid = false;
+        }
+        if (!city.trim()) {
+          setError("city", "Please add your city.");
+          valid = false;
+        } else if (city.trim().length > 100) {
+          setError("city", "City must be 100 characters or fewer.");
+          valid = false;
+        }
+        if (!state.trim()) {
+          setError("state", "Please add your state.");
+          valid = false;
+        } else if (state.trim().length > 50) {
+          setError("state", "State must be 50 characters or fewer.");
+          valid = false;
+        }
+        if (!zip.trim()) {
+          setError("postal_code", "Please add your ZIP / postal code.");
+          valid = false;
+        } else if (zip.trim().length > 20) {
+          setError(
+            "postal_code",
+            "ZIP / postal code must be 20 characters or fewer.",
+          );
+          valid = false;
+        }
+        if (country.trim().length > 100) {
+          setError("country", "Country must be 100 characters or fewer.");
+          valid = false;
+        }
+        if (notes.trim().length > 500) {
+          setError("notes", "Please keep this under 500 characters.");
+          valid = false;
+        }
+
+        if (!valid) {
+          // First invalid field gets focus so the fix is one thumb away.
+          const firstInvalid = form.querySelector('[aria-invalid="true"]');
+          firstInvalid?.focus();
+          return;
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Sending…";
+        }
+
+        try {
+          const res = await fetch("/api/address", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              full_name: fullName.trim(),
+              street: street.trim(),
+              unit: unit.trim(),
+              city: city.trim(),
+              state: state.trim(),
+              postal_code: zip.trim(),
+              country: country.trim(),
+              notes: notes.trim(),
+              guest_token: guestToken || null,
+            }),
+          });
+
+          if (res.status === 201 || res.ok) {
+            const data = await res.json().catch(() => null);
+            if (successText) {
+              successText.textContent =
+                data?.message ??
+                "Sealed and delivered — you're on the list. 💌";
+            }
+            form.hidden = true;
+            if (successBox) successBox.hidden = false;
+            successBox?.scrollIntoView({ behavior: "smooth", block: "center" });
+            return;
+          }
+
+          if (res.status === 422) {
+            const data = await res.json().catch(() => null);
+            if (data?.errors) {
+              for (const [field, message] of Object.entries(data.errors)) {
+                if (errorMap[field]) setError(field, message);
+              }
+            }
+            setFormError("Please take another look at the highlighted fields.");
+            const firstInvalid = form.querySelector('[aria-invalid="true"]');
+            firstInvalid?.focus();
+            return;
+          }
+
+          if (res.status === 503) {
+            setFormError(
+              "Submissions aren't available just yet — please try again soon.",
+            );
+            return;
+          }
+
+          setFormError("Something went wrong — please try again in a moment.");
+        } catch {
+          setFormError(
+            "We couldn't reach the server — check your connection and try again.",
+          );
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Send Address";
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
