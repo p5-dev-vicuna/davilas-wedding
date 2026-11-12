@@ -23,7 +23,21 @@ export function getDb() {
     return null;
   }
   if (!client) {
-    client = new SQL(process.env.DATABASE_URL);
+    // This Bun canary (1.4.4-canary.1) rejects postgres URL strings with
+    // "Unsupported protocol" even for postgres:// — construct from an
+    // options object parsed out of DATABASE_URL instead (details in
+    // BUN_CANARY_NOTES.md).
+    const raw = process.env.DATABASE_URL.trim().replace(/^["']+|["']+$/g, "");
+    const u = new URL(raw); // accepts both postgres:// and postgresql://
+    client = new SQL({
+      adapter: "postgres",
+      hostname: u.hostname,
+      port: Number(u.port || 5432),
+      database: u.pathname.replace(/^\//, ""),
+      username: decodeURIComponent(u.username),
+      password: decodeURIComponent(u.password),
+      tls: true,
+    });
     console.log("[db] Bun SQL configured (Neon pooled endpoint, TCP).");
   }
   return client;

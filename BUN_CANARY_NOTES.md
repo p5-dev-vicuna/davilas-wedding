@@ -78,6 +78,7 @@ Bun.serve({
 - Native Postgres client (also MySQL/SQLite). Tagged-template API: `const rows = await sql`SELECT * FROM rsvps WHERE id = ${id}`;`
 - Reads `DATABASE_URL` / `POSTGRES_URL` from env for connection config; works with Neon's **pooled TCP endpoint** (the app's `DATABASE_URL` already points at the `-pooler` host — plain TCP, no HTTP driver needed).
 - IMPORTANT: the current code uses `sql.query(str)`-style calls because @neondatabase/serverless requires tagged templates. Bun's built-in sql IS a tagged template natively: `sql`SELECT ...`` — do NOT call it as a function.
+- **`new SQL(url)` is broken on this canary for postgres URLs** — throws `Unsupported protocol` even with a `postgres://` scheme (proven locally against the real Neon DB, 2026-11-11). Use the options-object form: parse `DATABASE_URL` with `new URL` (trim whitespace/quotes first; `new URL` accepts both `postgresql://` and `postgres://`), then `new SQL({ adapter: "postgres", hostname: u.hostname, port: Number(u.port || 5432), database: u.pathname.replace(/^\//, ""), username: decodeURIComponent(u.username), password: decodeURIComponent(u.password), tls: true })` — URL-decode username/password.
 
 ## bun test
 
