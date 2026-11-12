@@ -2,11 +2,15 @@
 //
 // Every branch of this repo has a predictable preview URL:
 //
-//   https://davilas-wedding--<sanitized-branch>.preview.parallel5.com
+//   https://davilas--<sanitized-branch>.parallel5.com
 //
 // <sanitized-branch> = the branch name lowercased, "/" and "_" become "-",
 // other hostname-unsafe characters are stripped, result capped at 40 chars.
 // That makes the URL predictable from any GitHub PR/branch page.
+//
+// The subdomain stays ONE level under parallel5.com — Cloudflare Universal SSL
+// only covers a single level (*.parallel5.com, not *.*.parallel5.com), so
+// deeper names like "<branch>.preview.parallel5.com" fail TLS.
 //
 // Usage:
 //   node scripts/preview-url.mjs <branch>                    print the URL
@@ -24,8 +28,8 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const PROJECT = 'davilas-wedding'
-const PREVIEW_DOMAIN = 'preview.parallel5.com'
+const SUBDOMAIN = 'davilas'
+const PREVIEW_DOMAIN = 'parallel5.com'
 const SECRETS_FILE = join(homedir(), '.hermes', 'secrets', 'coolify')
 
 export function sanitizeBranch(branch) {
@@ -37,7 +41,7 @@ export function sanitizeBranch(branch) {
 }
 
 export function previewUrl(branch) {
-  return `https://${PROJECT}--${sanitizeBranch(branch)}.${PREVIEW_DOMAIN}`
+  return `https://${SUBDOMAIN}--${sanitizeBranch(branch)}.${PREVIEW_DOMAIN}`
 }
 
 function usage() {

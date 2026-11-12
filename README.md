@@ -88,14 +88,24 @@ deploy. Run `schema.sql` against your Neon database once (Neon's SQL editor
 works). No other moving parts — one container serves the site and the API.
 **Do not** commit `.env`; Coolify holds the real values.
 
+> **Tunnel routing:** per `p5-ops/homelab/DEPLOY.md`, Coolify's default Traefik
+> labels may include redirect-to-https / https entrypoints which break tunnel
+> routing on this host — if a domain 404s, re-save the labels per the DEPLOY.md
+> **Labels** section (no `tls.certresolver`, http entrypoint only).
+
 ## Preview URLs
 
 Every branch has a predictable preview URL — from any GitHub PR or branch
 page you can work it out from the branch name alone, no deploy bot needed:
 
 ```
-https://davilas-wedding--<sanitized-branch>.preview.parallel5.com
+https://davilas--<sanitized-branch>.parallel5.com
 ```
+
+The preview subdomain is a **single level** under `parallel5.com` — Cloudflare
+Universal SSL only covers one level of subdomain (`*.parallel5.com`, not
+`*.*.parallel5.com`), so two-level names like `<branch>.preview.parallel5.com`
+fail TLS.
 
 `<sanitized-branch>` is the branch name **lowercased**, `/` and `_` become
 `-`, any other hostname-unsafe character is stripped, and the result is
@@ -103,10 +113,10 @@ capped at **40 characters**:
 
 | Branch               | Preview URL                                                        |
 | -------------------- | ------------------------------------------------------------------ |
-| `main`               | `https://davilas-wedding--main.preview.parallel5.com`              |
-| `bun-native`         | `https://davilas-wedding--bun-native.preview.parallel5.com`        |
-| `feature/some_thing` | `https://davilas-wedding--feature-some-thing.preview.parallel5.com` |
-| `addresses`          | `https://davilas-wedding--addresses.preview.parallel5.com`         |
+| `main`               | `https://davilas--main.parallel5.com`                              |
+| `bun-native`         | `https://davilas--bun-native.parallel5.com`                        |
+| `feature/some_thing` | `https://davilas--feature-some-thing.parallel5.com`                |
+| `addresses`          | `https://davilas--addresses.parallel5.com`                         |
 
 `scripts/preview-url.mjs` (Node stdlib only, cross-platform, no dependencies)
 does the transform for you:
