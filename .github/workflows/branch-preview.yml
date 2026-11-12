@@ -1,0 +1,217 @@
+# Branch previews via the Coolify API.
+#
+# Every push to a non-main branch (and manual dispatch for any branch) gets a
+# running preview at:
+#
+#   https://davilas--<sanitized-branch>.parallel5.com
+#
+# The first push creates the Coolify application for the branch; later pushes
+# re-point its fqdn and queue a fresh deploy, so create-or-update is
+# idempotent. The preview subdomain stays a single level under parallel5.com —
+# Cloudflare Universal SSL only covers *.parallel5.com, not deeper levels.
+#
+# Requires the COOLIFY_API_TOKEN repo secret (Bearer token for
+# https://coolify.parallel5.com).
+name: Branch preview
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to deploy a preview for
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  # For the PR comment step. This workflow triggers on push and
+  # workflow_dispatch today, so that step stays dormant until a
+  # pull_request trigger is added.
+  pull-requests: write
+
+# One in-flight run per branch so rapid pushes debounce instead of piling up.
+concurrency:
+  group: preview-${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # workflow_dispatch executes this file from the default branch but
+          # must check out the requested branch's tree (Dockerfile.bun check).
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
+
+      - name: Create or update the Coolify preview app
+        id: coolify
+        env:
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref_name }}
+        run: |
+          # The branch's tree decides which dockerfile Coolify builds.
+          if [ -f Dockerfile.bun ]; then
+            export DOCKERFILE_LOCATION="/Dockerfile.bun"
+          else
+            export DOCKERFILE_LOCATION="/Dockerfile"
+          fi
+
+          cat > "$RUNNER_TEMP/coolify-preview.mjs" <<'SCRIPT'
+          import { appendFileSync } from "node:fs";
+
+          const API = "https://coolify.parallel5.com";
+          const TOKEN = process.env.COOLIFY_API_TOKEN;
+          const BRANCH = process.env.BRANCH;
+          const DOCKERFILE_LOCATION = process.env.DOCKERFILE_LOCATION;
+
+          function fail(message) {
+            console.error(`::error::${message}`);
+            process.exit(1);
+          }
+
+          if (!TOKEN) fail("COOLIFY_API_TOKEN is not set");
+          if (!BRANCH) fail("BRANCH is not set");
+          if (BRANCH === "main") fail(`refusing to deploy a preview for branch "${BRANCH}"`);
+
+          // Same rules as scripts/preview-url.mjs, inlined on purpose (do not
+          // import the script): lowercase, "/" and "_" -> "-", strip anything
+          // else that is unsafe in a hostname, cap at 40 characters.
+          function sanitizeBranch(branch) {
+            return branch
+              .toLowerCase()
+              .replace(/[/_]/g, "-")
+              .replace(/[^a-z0-9-]/g, "")
+              .slice(0, 40);
+          }
+
+          const subdomain = sanitizeBranch(BRANCH);
+          if (!subdomain) fail(`branch "${BRANCH}" sanitizes to an empty subdomain`);
+          const previewUrl = `https://davilas--${subdomain}.parallel5.com`;
+
+          function setOutput(name, value) {
+            appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
+          }
+
+          // Cloudflare fronts the Coolify API and 403s default library
+          // User-Agents, so every request claims to be a plain browser.
+          const headers = {
+            Authorization: `Bearer ${TOKEN}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0",
+          };
+
+          async function call(path, options = {}) {
+            const res = await fetch(`${API}${path}`, {
+              ...options,
+              headers: { ...headers, ...(options.headers ?? {}) },
+            });
+            const text = await res.text();
+            let body = null;
+            try {
+              body = text ? JSON.parse(text) : null;
+            } catch {
+              body = null;
+            }
+            return { status: res.status, ok: res.ok, body, text };
+          }
+
+          // 1. Try to create the app for this branch. On repeat pushes the
+          //    create is rejected (the app already exists), so fall back to
+          //    finding the existing app by git_branch.
+          const createPayload = {
+            project_uuid: "l14hgjokcdrc0f9q5xlmst5n",
+            server_uuid: "jhtg17m585r135397e6pa6t6",
+            environment_name: "production",
+            // The deploy key already exists in Coolify (this uuid) — a
+            // POST /api/v1/security/keys step is not needed.
+            private_key_uuid: "e1q4ddq4qujdydoaamkt24es",
+            git_repository: "git@github.com:p5-dev-vicuna/davilas-wedding.git",
+            git_branch: BRANCH,
+            build_pack: "dockerfile",
+            dockerfile_location: DOCKERFILE_LOCATION,
+            ports_exposes: "3000",
+          };
+
+          let appUuid;
+          const created = await call("/api/v1/applications/private-deploy-key", {
+            method: "POST",
+            body: JSON.stringify(createPayload),
+          });
+          if (created.ok) {
+            appUuid = created.body?.uuid;
+            console.log(`created Coolify application ${appUuid} for branch "${BRANCH}"`);
+          } else {
+            console.log(`create responded ${created.status}: ${created.text.slice(0, 200).trim()}`);
+            console.log(`looking for an existing app on branch "${BRANCH}"`);
+            const list = await call("/api/v1/applications");
+            if (!list.ok) {
+              fail(`GET /api/v1/applications responded ${list.status}: ${list.text.slice(0, 300)}`);
+            }
+            const existing = (Array.isArray(list.body) ? list.body : []).find(
+              (app) =>
+                app.git_branch === BRANCH &&
+                app.git_repository === createPayload.git_repository,
+            );
+            if (!existing) {
+              fail(
+                `could not create or find a Coolify application for branch "${BRANCH}" ` +
+                  `(create responded ${created.status}: ${created.text.slice(0, 200).trim()})`,
+              );
+            }
+            appUuid = existing.uuid;
+            console.log(`found existing Coolify application ${appUuid} for branch "${BRANCH}"`);
+          }
+          if (!appUuid) fail(`no application uuid for branch "${BRANCH}"`);
+
+          // 2. Point the app at this branch's preview domain.
+          const patched = await call(`/api/v1/applications/${encodeURIComponent(appUuid)}`, {
+            method: "PATCH",
+            body: JSON.stringify({ domains: previewUrl }),
+          });
+          if (!patched.ok) {
+            fail(`PATCH fqdn responded ${patched.status}: ${patched.text.slice(0, 300)}`);
+          }
+          console.log(`fqdn -> ${previewUrl}`);
+
+          // 3. Queue the deploy.
+          const deployed = await call(
+            `/api/v1/deploy?uuid=${encodeURIComponent(appUuid)}&force=true`,
+          );
+          if (!deployed.ok) {
+            fail(`deploy responded ${deployed.status}: ${deployed.text.slice(0, 300)}`);
+          }
+          console.log(`deploy queued for ${appUuid} (force=true)`);
+
+          setOutput("preview-url", previewUrl);
+          setOutput("app-uuid", appUuid);
+          appendFileSync(
+            process.env.GITHUB_STEP_SUMMARY,
+            [
+              "### Branch preview",
+              "",
+              `- branch: \`${BRANCH}\``,
+              `- preview: ${previewUrl}`,
+              `- app: \`${appUuid}\``,
+              `- dockerfile: \`${DOCKERFILE_LOCATION}\``,
+              "",
+            ].join("\n"),
+          );
+          console.log(`preview url: ${previewUrl}`);
+          SCRIPT
+          node "$RUNNER_TEMP/coolify-preview.mjs"
+
+      - name: Comment the preview URL on the PR
+        # Only pull_request events have a PR to comment on (dormant today:
+        # this workflow triggers on push / workflow_dispatch).
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_URL: ${{ steps.coolify.outputs.preview-url }}
+        run: |
+          gh pr comment "${{ github.event.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "Branch preview deployed to: $PREVIEW_URL"
