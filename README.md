@@ -88,6 +88,42 @@ deploy. Run `schema.sql` against your Neon database once (Neon's SQL editor
 works). No other moving parts — one container serves the site and the API.
 **Do not** commit `.env`; Coolify holds the real values.
 
+## Preview URLs
+
+Every branch has a predictable preview URL — from any GitHub PR or branch
+page you can work it out from the branch name alone, no deploy bot needed:
+
+```
+https://davilas-wedding--<sanitized-branch>.preview.parallel5.com
+```
+
+`<sanitized-branch>` is the branch name **lowercased**, `/` and `_` become
+`-`, any other hostname-unsafe character is stripped, and the result is
+capped at **40 characters**:
+
+| Branch               | Preview URL                                                        |
+| -------------------- | ------------------------------------------------------------------ |
+| `main`               | `https://davilas-wedding--main.preview.parallel5.com`              |
+| `bun-native`         | `https://davilas-wedding--bun-native.preview.parallel5.com`        |
+| `feature/some_thing` | `https://davilas-wedding--feature-some-thing.preview.parallel5.com` |
+| `addresses`          | `https://davilas-wedding--addresses.preview.parallel5.com`         |
+
+`scripts/preview-url.mjs` (Node stdlib only, cross-platform, no dependencies)
+does the transform for you:
+
+```bash
+node scripts/preview-url.mjs <branch>                    # print the URL
+node scripts/preview-url.mjs <branch> --open             # open it in the default browser
+node scripts/preview-url.mjs <branch> --register <uuid>  # PATCH the Coolify app's fqdn to the URL
+```
+
+`--register` reads `COOLIFY_API_URL` and `COOLIFY_API_TOKEN` from
+`~/.hermes/secrets/coolify` — each line is split on the first `=` and values
+are used verbatim (the token contains a literal `|`, so nothing is ever
+eval'd) — then PATCHes `/api/v1/applications/<uuid>` with the URL as the
+`fqdn`, sending `User-Agent: Mozilla/5.0` because Cloudflare blocks default
+library UAs.
+
 ## Repo layout
 
 ```
