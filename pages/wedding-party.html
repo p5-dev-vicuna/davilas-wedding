@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f5f1e8" />
     <title>Wedding Party · The Davilas</title>
     <meta
       name="description"
@@ -293,6 +297,17 @@
           if (icon) icon.textContent = "☰";
         }),
       );
+
+      // Escape closes the mobile menu and hands focus back to the toggle.
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !header.classList.contains("open"))
+          return;
+        header.classList.remove("open");
+        toggle?.setAttribute("aria-expanded", "false");
+        const icon = toggle?.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = "☰";
+        toggle?.focus();
+      });
     </script>
   </body>
 </html>
