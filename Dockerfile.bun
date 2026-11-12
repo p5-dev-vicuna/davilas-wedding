@@ -24,12 +24,15 @@ FROM oven/bun:canary AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# package.json "build" is exactly:
-#   bun build --target=bun --dts --root . --entry-naming "[name].[ext]" \
-#     server/index.js --outdir dist
-# (--dts type-checks the entry graph, so this doubles as the server-side type
-# gate.) There is no build:client step on this branch — static assets stay
-# static. Running the script keeps the image build identical to `bun run build`.
+# package.json "build" runs scripts/build.mjs — the programmatic equivalent
+# of `bun build --target=bun --dts --root . --entry-naming "[name].[ext]"
+# server/index.js --outdir dist`, plus a plugin that lets the HTML pages
+# reference public/ assets with root-absolute URLs (/hero.webp,
+# /gallery/…) without breaking the bundler's resolution.
+# (--dts type-checks the entry graph, so this doubles as the server-side
+# type gate.) There is no build:client step on this branch — static assets
+# stay static. Running the script keeps the image build identical to
+# `bun run build`.
 RUN bun run build
 
 FROM oven/bun:canary-distroless AS runtime
