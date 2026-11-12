@@ -1,0 +1,26 @@
+# Build context for Dockerfile.bun (bun-native branch).
+# `main` keeps its own .dockerignore alongside the Node Dockerfile.
+
+# build output & deps — rebuilt inside the image
+node_modules
+dist
+
+# local artifacts / tooling state
+screenshots
+test-results
+playwright-report
+.git
+.opencode
+
+# secrets never enter a layer (env comes from Coolify at runtime)
+.env
+.env.*
+
+# test infra not needed inside the image (mirrors main's .dockerignore)
+tests
+playwright.config.js
+
+# misc
+*.log
+.DS_Store
+Thumbs.db

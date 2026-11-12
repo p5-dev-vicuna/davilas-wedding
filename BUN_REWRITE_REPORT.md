@@ -290,3 +290,55 @@ static files as before.
 | `scripts/db-check.mjs`                                          | live-DB counts/cleanup helper used in §7                                                            |
 | `.githooks/pre-commit`, `bunfig.toml`, `tsconfig.json`          | quality gate + tool config                                                                          |
 | `package.json` / `bun.lock`                                     | scripts (dev/start/build/typecheck/lint/fmt/test/test:e2e), zero runtime deps                       |
+
+## Dockerfile.bun (added after the rewrite verification above)
+
+Multi-stage, bun-native only — no npm/npx/yarn anywhere in the image. `main`
+keeps its Node Dockerfile; the Coolify app for this branch points at
+`Dockerfile.bun`.
+
+- **Base images** — tags verified on Docker Hub 2026-11-11. No dated canary
+  tag exists (the family is exactly `canary`, `canary-debian`, `canary-slim`,
+  `canary-distroless`, `canary-alpine`), so the moving tags are used and the
+  digests recorded here:
+  - `oven/bun:canary` → `sha256:2d64ae2d0789e0db8f6cbaac3c6197e81fa9fae1aa741ff6c291277e127f495e`
+    (amd64 `sha256:fe7a58e1…`, arm64 `sha256:de8b827b…`)
+  - `oven/bun:canary-slim` → `sha256:7ecc7e5470ffd9e2742a3e94723838b3a30cfb28cede547a4930b161d1395399`
+    (amd64 `sha256:197d174f…`, arm64 `sha256:22bcad46…`)
+- **deps layer** — keyed on `COPY package.json bun.lock ./` +
+  `bun install --frozen-lockfile` under a BuildKit cache mount
+  (`--mount=type=cache,target=/root/.bun/install/cache`). BuildKit is required
+  for the mount syntax; Coolify builds with BuildKit enabled, so nothing needs
+  toggling there. `bun install --frozen-lockfile` was verified locally against
+  the committed lock in a clean temp dir (6 packages, exit 0).
+- **build stage** — runs `bun run build`, identical to the package.json script
+  (`bun build --target=bun --dts --root . --entry-naming "[name].[ext]"
+server/index.js --outdir dist`). No `build:client` step exists on this branch
+  (static assets stay static).
+- **runtime stage** — ships only what the production server actually reads:
+  `dist/`, `pages/404.html` (the styled 404 is read from disk at
+  `<bundle dir>/../pages/404.html`), and `public/` (unhashed assets — favicon,
+  global.css, future gallery/wedding-party photos). `node_modules` is
+  deliberately NOT copied: zero runtime deps, and the bundle contains no bare
+  import specifiers (verified by grep over `dist/index.js`).
+- **entry** — `WORKDIR /app/dist` + `CMD ["bun", "index.js"]`, mirroring the
+  verified `start` script (`cd dist && bun index.js`). This is load-bearing:
+  Bun resolves the built asset manifest relative to the process CWD — running
+  `bun dist/index.js` from the repo root crashes at startup with
+  `TypeError: Bundled file "./index-0eg60hwh.js" not found` (reproduced while
+  writing the Dockerfile). `EXPOSE 3000`; the server honors `$PORT` and
+  defaults to 3000.
+- **Docker was NOT available locally** for the two-build cache proof. Docker
+  Desktop 29.4.3 is installed, but its Linux engine cannot run: both engine
+  named pipes return HTTP 500 and the machine has no WSL distributions at all
+  (`wsl -l -v` → "no installed distributions"), so there is no backend to host
+  the engine. Per the brief, the Dockerfile was validated by inspection: every
+  command checked against package.json and the live layout, and the exact
+  production entry (`cd dist && bun index.js`) was run outside Docker and
+  probed (home 200, styled 404, `/styles/global.css` 200, `/favicon.svg` 200,
+  `/api/songs` 200). The real image build happens on the Coolify host at
+  deploy time (out of scope for this run).
+- **.dockerignore** recreated on this branch (the rewrite had removed main's
+  Node-flavored pair): excludes `node_modules`, `dist`, `screenshots`,
+  `test-results`, `.git`, `.opencode`, `.env*`, plus test-infra/junk entries
+  mirroring main's list.
