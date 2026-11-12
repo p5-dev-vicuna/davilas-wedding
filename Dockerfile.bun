@@ -32,7 +32,7 @@ COPY . .
 # static. Running the script keeps the image build identical to `bun run build`.
 RUN bun run build
 
-FROM oven/bun:canary-slim AS runtime
+FROM oven/bun:canary-distroless AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # Production layout (mirrors the verified `bun run start` = `cd dist && bun index.js`):

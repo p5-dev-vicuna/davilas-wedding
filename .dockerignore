@@ -16,6 +16,21 @@ playwright-report
 .env
 .env.*
 
+# docs / reports — local only, not needed in the image
+BRIEF.md
+BUILD_REPORT.md
+BUN_REWRITE_BRIEF.md
+BUN_REWRITE_REPORT.md
+BUN_CANARY_NOTES.md
+ADDRESS_FEATURE.md
+ADDRESS_FEATURE_BRIEF.md
+POLISH_REPORT.md
+TWILIO_SETUP.md
+
+# guest data — phone numbers must never enter an image layer
+guests.csv
+guest_tokens.csv
+
 # test infra not needed inside the image (mirrors main's .dockerignore)
 tests
 playwright.config.js
