@@ -1373,3 +1373,35 @@ textarea {
     z-index: 1;
   }
 }
+
+/* Phones and tablets (most guests): the same vine turned sideways as a garland in its own
+   row, so it never sits beside or behind text. A slim band under the header that scrolls
+   away with the page, and a fuller one resting on the footer.
+   Pattern: public/stained-glass-garland.svg (same generator). */
+@media (max-width: 1359.98px) {
+  main::before,
+  main::after {
+    content: '';
+    display: block;
+    background: url('/stained-glass-garland.svg') left center / auto 100% repeat-x;
+    opacity: 0.9;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  main::before {
+    height: 34px;
+    margin-top: 2px;
+  }
+
+  main::after {
+    height: 46px;
+    margin-top: 2.4rem;
+  }
+
+  /* the bottom garland now provides the gap above the footer */
+  .site-footer {
+    margin-top: 0;
+  }
+}
