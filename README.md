@@ -9,9 +9,9 @@ Wedding website for **Kendra & Nando**, Saturday · **October 23, 2027** · 1513
 > canary; the notes in `BUN_CANARY_NOTES.md` describe this machine's setup).
 
 - **Bun's fullstack server** — `Bun.serve({ routes })` with HTML imports: the
-  11 pages + styled 404 live in `pages/*.html` and are bundled by Bun itself
+  12 pages + styled 404 live in `pages/*.html` and are bundled by Bun itself
   (on demand with HMR in dev, as a pre-built asset manifest in production).
-- **API on the same server** — the five `/api` endpoints are plain route
+- **API on the same server** — the eight `/api` endpoints are plain route
   handlers with the same validation, rate limiting, admin guard, and CSV
   export as the Astro/Hono version on `main`.
 - **Neon Postgres** via Bun's built-in SQL client (`import { SQL } from "bun"}`,
@@ -68,35 +68,76 @@ always win.
 ```ini
 DATABASE_URL=postgresql://user:password@ep-...pooler...neon.tech/neondb?sslmode=require
 ADMIN_KEY=a-long-random-string
+# SITE_URL=https://your-host   # only scripts/import_guests.mjs reads this
 # PORT=3000
 ```
 
 - **`DATABASE_URL`** — Neon connection string (the **pooled** endpoint — Bun's
-  SQL client speaks plain TCP). Run `schema.sql` once against the database
-  (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps` and
-  `song_requests` tables. **Until this is set, `POST /api/rsvp` and
-  `POST /api/song` return 503 with a friendly message** (and `GET /api/songs`
-  returns an empty list) — so the site can deploy before credentials exist.
+  SQL client speaks plain TCP). Run `schema.sql` once against the
+  database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps`,
+  `song_requests`, and `addresses` tables (existing databases: apply
+  `migrations/001_add_addresses.sql` for the addresses table alone). **Until
+  this is set, `POST /api/rsvp`, `POST /api/song`, and `POST /api/address`
+  return 503 with a friendly message** (and `GET /api/songs` returns an empty
+  list) — so the site can deploy before credentials exist.
 - **`ADMIN_KEY`** — bearer token guarding the admin exports. Requests must send
   `Authorization: Bearer <ADMIN_KEY>`:
 
   ```bash
-  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps      # JSON
-  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps.csv  # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps        # JSON
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps.csv    # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/addresses    # JSON (matched/unmatched)
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/addresses.csv # spreadsheet
   ```
 
 ## API
 
-| Endpoint         | Method | Auth      | Notes                                                                 |
-| ---------------- | ------ | --------- | --------------------------------------------------------------------- |
-| `/api/rsvp`      | POST   | —         | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
-| `/api/song`      | POST   | —         | Validates (title/artist/name), inserts into `song_requests`           |
-| `/api/songs`     | GET    | —         | Latest 100 requests; first names only                                 |
-| `/api/rsvps`     | GET    | ADMIN_KEY | All RSVPs as JSON                                                     |
-| `/api/rsvps.csv` | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)                                     |
+| Endpoint             | Method | Auth      | Notes                                                                 |
+| -------------------- | ------ | --------- | --------------------------------------------------------------------- |
+| `/api/rsvp`          | POST   | —         | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
+| `/api/song`          | POST   | —         | Validates (title/artist/name), inserts into `song_requests`           |
+| `/api/songs`         | GET    | —         | Latest 100 requests; first names only                                 |
+| `/api/rsvps`         | GET    | ADMIN_KEY | All RSVPs as JSON                                                     |
+| `/api/rsvps.csv`     | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)                                     |
+| `/api/address`       | POST   | —         | Validates (required fields, length caps), inserts into `addresses`    |
+| `/api/addresses`     | GET    | ADMIN_KEY | Addresses as JSON, grouped `matched` (personal link) / `unmatched`    |
+| `/api/addresses.csv` | GET    | ADMIN_KEY | Addresses as CSV (Excel-friendly)                                     |
 
 All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 (token bucket), and DB errors are never leaked to clients (logged server-side only).
+
+## Pre-RSVP mailing addresses
+
+The `/address` page lets guests submit their mailing address before invitations
+go out (they'll receive a Twilio SMS with a personal link like
+`https://your-host/address?g=<token>`; the token is stored silently with the
+submission so you can tell exactly who responded).
+
+**Generate the personal links** from a guest CSV with `name` and `phone`
+headers (`email` column optional):
+
+```bash
+SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
+# → writes guest_tokens.csv: name, phone, token, link
+```
+
+(`SITE_URL` may also live in `.env`.) Send each `link` to that guest via SMS.
+Unknown tokens are stored as-is — nobody has to keep the list in sync.
+
+**Pull the results** (cross-reference against `guest_tokens.csv`):
+
+```bash
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses      # JSON, matched/unmatched
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv  # spreadsheet
+```
+
+**Database:** fresh Neon databases can run `schema.sql` as before. Existing
+databases (already carrying `rsvps`/`song_requests`) should apply the
+incremental migration instead:
+
+```bash
+psql "$DATABASE_URL" -f migrations/001_add_addresses.sql
+```
 
 ## Where the couple edits things
 
@@ -168,10 +209,12 @@ server/             Bun.serve app: routes, API, static/404 fallback, rate limiti
 shared/songs.js     dedupe/sort logic shared by browser + server
 tests/unit/         bun:test unit tests (incl. live-server API tests)
 tests/e2e/          Playwright specs (data-testid assertions) — carried over from the Astro version
-scripts/            run-e2e.mjs (E2E runner), db-check.mjs (live DB counts/cleanup), shoot.mjs
+scripts/            run-e2e.mjs (E2E runner), import_guests.mjs (personal /address links),
+                    db-check.mjs (live DB counts/cleanup), shoot.mjs, preview-url.mjs
 bunfig.toml         bun test/lint/fmt configuration
 tsconfig.json       bun check (typecheck) configuration
-schema.sql          Neon Postgres tables (unchanged)
+schema.sql          Neon Postgres tables (rsvps, song_requests, addresses)
+migrations/         incremental schema changes for existing databases (001_add_addresses.sql)
 .githooks/          pre-commit hook (activate: git config core.hooksPath .githooks)
 BUN_REWRITE_REPORT.md  what changed vs main, verification output, canary workarounds
 ```

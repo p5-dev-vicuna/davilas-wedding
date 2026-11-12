@@ -22,3 +22,21 @@ CREATE TABLE IF NOT EXISTS song_requests (
   requested_by text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Pre-RSVP mailing-address capture (guests arrive via /address?g=<token>).
+-- Existing databases: apply migrations/001_add_addresses.sql instead.
+CREATE TABLE IF NOT EXISTS addresses (
+  id serial PRIMARY KEY,
+  full_name text NOT NULL,
+  street text NOT NULL,
+  unit text,
+  city text NOT NULL,
+  state text NOT NULL,
+  postal_code text NOT NULL,
+  country text DEFAULT 'USA',
+  notes text,
+  guest_token text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS addresses_guest_token_idx ON addresses (guest_token);

@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import indexPage from "../pages/index.html";
 import aboutPage from "../pages/about.html";
 import rsvpPage from "../pages/rsvp.html";
+import addressPage from "../pages/address.html";
 import schedulePage from "../pages/schedule.html";
 import travelPage from "../pages/travel.html";
 import detailsPage from "../pages/details.html";
@@ -15,7 +16,7 @@ import faqPage from "../pages/faq.html";
 import registryPage from "../pages/registry.html";
 import songsPage from "../pages/songs.html";
 import { getDb } from "./db.js";
-import { validateRsvp, validateSong } from "./validate.js";
+import { validateAddress, validateRsvp, validateSong } from "./validate.js";
 import { createRateLimiter } from "./rate-limit.js";
 import { serve404, servePublicFile } from "./static.js";
 import { firstName } from "../shared/songs.js";
@@ -104,6 +105,11 @@ function isoOrNull(value) {
   return value instanceof Date ? value.toISOString() : value;
 }
 
+/** Spread a DB row with created_at normalized to an ISO string. */
+function isoRow(row) {
+  return { ...row, created_at: isoOrNull(row.created_at) };
+}
+
 /* --------------------------------- API ---------------------------------- */
 
 async function postRsvp(req, server) {
@@ -184,6 +190,47 @@ async function postSong(req, server) {
     );
   } catch (err) {
     console.error("[api] failed to insert song request:", err);
+    return jsonError(GENERIC_ERROR_MESSAGE, 500);
+  }
+}
+
+async function postAddress(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const body = await jsonBody(req);
+  if (body === null || typeof body !== "object") {
+    return jsonError("Expected a JSON request body.", 400);
+  }
+
+  const result = validateAddress(body);
+  if (!result.ok) {
+    return Response.json(
+      { error: "Validation failed.", errors: result.errors },
+      { status: 422 },
+    );
+  }
+
+  const db = getDb();
+  if (!db) {
+    console.warn(
+      "[api] POST /api/address reached without DATABASE_URL — returning 503",
+    );
+    return jsonError(NOT_CONFIGURED_MESSAGE, 503);
+  }
+
+  try {
+    const v = result.value;
+    await db`
+      INSERT INTO addresses (full_name, street, unit, city, state, postal_code, country, notes, guest_token)
+      VALUES (${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, ${v.guest_token})
+    `;
+    return Response.json(
+      { ok: true, message: "Sealed and delivered — you're on the list. 💌" },
+      { status: 201 },
+    );
+  } catch (err) {
+    console.error("[api] failed to insert address:", err); // server log only — never leaked
     return jsonError(GENERIC_ERROR_MESSAGE, 500);
   }
 }
@@ -296,6 +343,90 @@ async function getRsvpsCsv(req, server) {
   }
 }
 
+async function getAddresses(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const denied = adminDenial(req);
+  if (denied) return jsonError(denied.message, denied.status);
+
+  const db = getDb();
+  if (!db) {
+    console.warn(
+      "[api] GET /api/addresses reached without DATABASE_URL — returning 503",
+    );
+    return jsonError("The database is not configured yet.", 503);
+  }
+  try {
+    const rows = await db`
+      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
+      FROM addresses
+      ORDER BY created_at DESC
+    `;
+    // Grouped for cross-referencing guest_tokens.csv: matched rows arrived
+    // via a personal SMS link, unmatched rows were typed manually.
+    const matched = rows.filter((row) => row.guest_token);
+    const unmatched = rows.filter((row) => !row.guest_token);
+    return Response.json({
+      count: rows.length,
+      matched: matched.map(isoRow),
+      unmatched: unmatched.map(isoRow),
+    });
+  } catch (err) {
+    console.error("[api] failed to list addresses:", err);
+    return jsonError(GENERIC_ERROR_MESSAGE, 500);
+  }
+}
+
+async function getAddressesCsv(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const denied = adminDenial(req);
+  if (denied) return jsonError(denied.message, denied.status);
+
+  const db = getDb();
+  if (!db) {
+    return jsonError("The database is not configured yet.", 503);
+  }
+  try {
+    const rows = await db`
+      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
+      FROM addresses
+      ORDER BY created_at DESC
+    `;
+    const header =
+      "id,full_name,street,unit,city,state,postal_code,country,notes,guest_token,created_at";
+    const lines = rows.map((row) =>
+      [
+        row.id,
+        csvEscape(row.full_name),
+        csvEscape(row.street),
+        csvEscape(row.unit),
+        csvEscape(row.city),
+        csvEscape(row.state),
+        csvEscape(row.postal_code),
+        csvEscape(row.country),
+        csvEscape(row.notes),
+        csvEscape(row.guest_token),
+        csvEscape(isoOrNull(row.created_at)),
+      ].join(","),
+    );
+    // BOM so Excel opens UTF-8 happily.
+    const csv = "\uFEFF" + [header, ...lines].join("\r\n");
+    return new Response(csv, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": 'attachment; filename="addresses.csv"',
+      },
+    });
+  } catch (err) {
+    console.error("[api] failed to export addresses:", err);
+    return jsonError(GENERIC_ERROR_MESSAGE, 500);
+  }
+}
+
 /* ------------------------------ route table ----------------------------- */
 
 export function createRoutes() {
@@ -305,6 +436,7 @@ export function createRoutes() {
     "/": indexPage,
     "/about": aboutPage,
     "/rsvp": rsvpPage,
+    "/address": addressPage,
     "/schedule": schedulePage,
     "/travel": travelPage,
     "/details": detailsPage,
@@ -319,6 +451,9 @@ export function createRoutes() {
     "/api/songs": { GET: getSongs },
     "/api/rsvps": { GET: getRsvps },
     "/api/rsvps.csv": { GET: getRsvpsCsv },
+    "/api/address": { POST: postAddress },
+    "/api/addresses": { GET: getAddresses },
+    "/api/addresses.csv": { GET: getAddressesCsv },
   };
 }
 
