@@ -1,9 +1,10 @@
 # Gallery photos
 
-Drop the couple's photos into this folder (`public/gallery/`), then open
-`src/pages/gallery.astro` and update the `photos` array at the top of the
-frontmatter: set `src: '/gallery/your-filename.jpg'` for each tile.
+Engagement session photos, converted to WebP from the photographer's JPEGs.
 
-Suggested: export photos as JPEG/WebP around 1200px wide. Add a matching
-`alt` and `caption` for each one. The lightbox will automatically show the
-full-size image when a tile is clicked.
+- `public/gallery/<name>.webp`: lightbox size (1800px on the long edge)
+- `public/gallery/thumb/<name>.webp`: grid thumbnail (640px wide)
+
+Tiles live in `pages/gallery.html`. To remove a photo, delete its `<button>`
+tile and both `.webp` files, then renumber `data-index` so it stays
+sequential (0..n-1) for the lightbox prev/next.

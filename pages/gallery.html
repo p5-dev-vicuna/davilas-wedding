@@ -106,14 +106,10 @@
           </header>
 
           <!--
-            ✏️✏️✏️ COUPLE: GALLERY PHOTOS ✏️✏️✏️
-            1. Drop photos into  public/gallery/  (see public/gallery/README.md).
-            2. For each tile below, set  data-full="/gallery/your-file.jpg"  and
-               write a short alt + caption. Tiles with an empty data-full show a
-               placeholder.
-            3. The placeholder aspect-ratio varies per tile so the masonry grid
-               feels organic — tweak freely.
-            Tiles map one-to-one with photos, in order.
+            Gallery photos: engagement session, 110 shots (temporary full set, will be trimmed).
+            Thumbs (640px wide) live in public/gallery/thumb/, lightbox images (1800px) in public/gallery/.
+            To remove a photo: delete its <button> tile and both .webp files. data-index must stay
+            sequential (0..n-1) for the lightbox prev/next.
           -->
           <div class="gallery-grid" data-testid="gallery-grid">
             <button
@@ -121,13 +117,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-1"
               data-index="0"
-              data-full=""
-              data-caption="The two of us"
-              aria-label="Open photo: The two of us"
+              data-full="/gallery/cdp03516.webp"
+              data-caption=""
+              aria-label="Open photo 1 of 110"
             >
-              <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 5">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">The two of us</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03516.webp"
+                  alt="Kendra and Nando, engagement photo 1"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -135,13 +137,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-2"
               data-index="1"
-              data-full=""
-              data-caption="The proposal"
-              aria-label="Open photo: The proposal"
+              data-full="/gallery/cdp03522.webp"
+              data-caption=""
+              aria-label="Open photo 2 of 110"
             >
-              <figure class="photo-slot tone-gold" style="aspect-ratio: 1 / 1">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">The proposal</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03522.webp"
+                  alt="Kendra and Nando, engagement photo 2"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -149,13 +157,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-3"
               data-index="2"
-              data-full=""
-              data-caption="Golden hour"
-              aria-label="Open photo: Golden hour"
+              data-full="/gallery/cdp03532.webp"
+              data-caption=""
+              aria-label="Open photo 3 of 110"
             >
-              <figure class="photo-slot tone-cream" style="aspect-ratio: 4 / 3">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">Golden hour</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03532.webp"
+                  alt="Kendra and Nando, engagement photo 3"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -163,13 +177,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-4"
               data-index="3"
-              data-full=""
-              data-caption="Sunday drives"
-              aria-label="Open photo: Sunday drives"
+              data-full="/gallery/cdp03534.webp"
+              data-caption=""
+              aria-label="Open photo 4 of 110"
             >
-              <figure class="photo-slot tone-gold" style="aspect-ratio: 3 / 4">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">Sunday drives</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03534.webp"
+                  alt="Kendra and Nando, engagement photo 4"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -177,13 +197,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-5"
               data-index="4"
-              data-full=""
-              data-caption="Game night"
-              aria-label="Open photo: Game night"
+              data-full="/gallery/cdp03542.webp"
+              data-caption=""
+              aria-label="Open photo 5 of 110"
             >
-              <figure class="photo-slot tone-sage" style="aspect-ratio: 1 / 1">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">Game night</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03542.webp"
+                  alt="Kendra and Nando, engagement photo 5"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -191,13 +217,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-6"
               data-index="5"
-              data-full=""
-              data-caption="On the trail"
-              aria-label="Open photo: On the trail"
+              data-full="/gallery/cdp03543.webp"
+              data-caption=""
+              aria-label="Open photo 6 of 110"
             >
-              <figure class="photo-slot tone-cream" style="aspect-ratio: 4 / 5">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">On the trail</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03543.webp"
+                  alt="Kendra and Nando, engagement photo 6"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -205,13 +237,19 @@
               class="gallery-tile"
               data-testid="gallery-tile-7"
               data-index="6"
-              data-full=""
-              data-caption="Coffee dates"
-              aria-label="Open photo: Coffee dates"
+              data-full="/gallery/cdp03553.webp"
+              data-caption=""
+              aria-label="Open photo 7 of 110"
             >
-              <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 3">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">Coffee dates</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03553.webp"
+                  alt="Kendra and Nando, engagement photo 7"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
             <button
@@ -219,13 +257,2059 @@
               class="gallery-tile"
               data-testid="gallery-tile-8"
               data-index="7"
-              data-full=""
-              data-caption="Us, always"
-              aria-label="Open photo: Us, always"
+              data-full="/gallery/cdp03559.webp"
+              data-caption=""
+              aria-label="Open photo 8 of 110"
             >
-              <figure class="photo-slot tone-gold" style="aspect-ratio: 3 / 4">
-                <span class="photo-glyph" aria-hidden="true">❦</span>
-                <figcaption class="photo-label">Us, always</figcaption>
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03559.webp"
+                  alt="Kendra and Nando, engagement photo 8"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-9"
+              data-index="8"
+              data-full="/gallery/cdp03563.webp"
+              data-caption=""
+              aria-label="Open photo 9 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp03563.webp"
+                  alt="Kendra and Nando, engagement photo 9"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-10"
+              data-index="9"
+              data-full="/gallery/cdp03572.webp"
+              data-caption=""
+              aria-label="Open photo 10 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03572.webp"
+                  alt="Kendra and Nando, engagement photo 10"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-11"
+              data-index="10"
+              data-full="/gallery/cdp03574.webp"
+              data-caption=""
+              aria-label="Open photo 11 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03574.webp"
+                  alt="Kendra and Nando, engagement photo 11"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-12"
+              data-index="11"
+              data-full="/gallery/cdp03577.webp"
+              data-caption=""
+              aria-label="Open photo 12 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03577.webp"
+                  alt="Kendra and Nando, engagement photo 12"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-13"
+              data-index="12"
+              data-full="/gallery/cdp03580.webp"
+              data-caption=""
+              aria-label="Open photo 13 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03580.webp"
+                  alt="Kendra and Nando, engagement photo 13"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-14"
+              data-index="13"
+              data-full="/gallery/cdp03591.webp"
+              data-caption=""
+              aria-label="Open photo 14 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03591.webp"
+                  alt="Kendra and Nando, engagement photo 14"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-15"
+              data-index="14"
+              data-full="/gallery/cdp03594.webp"
+              data-caption=""
+              aria-label="Open photo 15 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03594.webp"
+                  alt="Kendra and Nando, engagement photo 15"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-16"
+              data-index="15"
+              data-full="/gallery/cdp03595.webp"
+              data-caption=""
+              aria-label="Open photo 16 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03595.webp"
+                  alt="Kendra and Nando, engagement photo 16"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-17"
+              data-index="16"
+              data-full="/gallery/cdp03596.webp"
+              data-caption=""
+              aria-label="Open photo 17 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03596.webp"
+                  alt="Kendra and Nando, engagement photo 17"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-18"
+              data-index="17"
+              data-full="/gallery/cdp03603.webp"
+              data-caption=""
+              aria-label="Open photo 18 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03603.webp"
+                  alt="Kendra and Nando, engagement photo 18"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-19"
+              data-index="18"
+              data-full="/gallery/cdp03614.webp"
+              data-caption=""
+              aria-label="Open photo 19 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03614.webp"
+                  alt="Kendra and Nando, engagement photo 19"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-20"
+              data-index="19"
+              data-full="/gallery/cdp03631.webp"
+              data-caption=""
+              aria-label="Open photo 20 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03631.webp"
+                  alt="Kendra and Nando, engagement photo 20"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-21"
+              data-index="20"
+              data-full="/gallery/cdp03635.webp"
+              data-caption=""
+              aria-label="Open photo 21 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp03635.webp"
+                  alt="Kendra and Nando, engagement photo 21"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-22"
+              data-index="21"
+              data-full="/gallery/cdp03640.webp"
+              data-caption=""
+              aria-label="Open photo 22 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03640.webp"
+                  alt="Kendra and Nando, engagement photo 22"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-23"
+              data-index="22"
+              data-full="/gallery/cdp03652.webp"
+              data-caption=""
+              aria-label="Open photo 23 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03652.webp"
+                  alt="Kendra and Nando, engagement photo 23"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-24"
+              data-index="23"
+              data-full="/gallery/cdp03656.webp"
+              data-caption=""
+              aria-label="Open photo 24 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03656.webp"
+                  alt="Kendra and Nando, engagement photo 24"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-25"
+              data-index="24"
+              data-full="/gallery/cdp03664.webp"
+              data-caption=""
+              aria-label="Open photo 25 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03664.webp"
+                  alt="Kendra and Nando, engagement photo 25"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-26"
+              data-index="25"
+              data-full="/gallery/cdp03666.webp"
+              data-caption=""
+              aria-label="Open photo 26 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03666.webp"
+                  alt="Kendra and Nando, engagement photo 26"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-27"
+              data-index="26"
+              data-full="/gallery/cdp03673.webp"
+              data-caption=""
+              aria-label="Open photo 27 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03673.webp"
+                  alt="Kendra and Nando, engagement photo 27"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-28"
+              data-index="27"
+              data-full="/gallery/cdp03677.webp"
+              data-caption=""
+              aria-label="Open photo 28 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03677.webp"
+                  alt="Kendra and Nando, engagement photo 28"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-29"
+              data-index="28"
+              data-full="/gallery/cdp03678.webp"
+              data-caption=""
+              aria-label="Open photo 29 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03678.webp"
+                  alt="Kendra and Nando, engagement photo 29"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-30"
+              data-index="29"
+              data-full="/gallery/cdp03683.webp"
+              data-caption=""
+              aria-label="Open photo 30 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03683.webp"
+                  alt="Kendra and Nando, engagement photo 30"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-31"
+              data-index="30"
+              data-full="/gallery/cdp03687.webp"
+              data-caption=""
+              aria-label="Open photo 31 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03687.webp"
+                  alt="Kendra and Nando, engagement photo 31"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-32"
+              data-index="31"
+              data-full="/gallery/cdp03692.webp"
+              data-caption=""
+              aria-label="Open photo 32 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03692.webp"
+                  alt="Kendra and Nando, engagement photo 32"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-33"
+              data-index="32"
+              data-full="/gallery/cdp03695.webp"
+              data-caption=""
+              aria-label="Open photo 33 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03695.webp"
+                  alt="Kendra and Nando, engagement photo 33"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-34"
+              data-index="33"
+              data-full="/gallery/cdp03701.webp"
+              data-caption=""
+              aria-label="Open photo 34 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03701.webp"
+                  alt="Kendra and Nando, engagement photo 34"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-35"
+              data-index="34"
+              data-full="/gallery/cdp03707.webp"
+              data-caption=""
+              aria-label="Open photo 35 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03707.webp"
+                  alt="Kendra and Nando, engagement photo 35"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-36"
+              data-index="35"
+              data-full="/gallery/cdp03713.webp"
+              data-caption=""
+              aria-label="Open photo 36 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03713.webp"
+                  alt="Kendra and Nando, engagement photo 36"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-37"
+              data-index="36"
+              data-full="/gallery/cdp03721.webp"
+              data-caption=""
+              aria-label="Open photo 37 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03721.webp"
+                  alt="Kendra and Nando, engagement photo 37"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-38"
+              data-index="37"
+              data-full="/gallery/cdp03723.webp"
+              data-caption=""
+              aria-label="Open photo 38 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03723.webp"
+                  alt="Kendra and Nando, engagement photo 38"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-39"
+              data-index="38"
+              data-full="/gallery/cdp03727.webp"
+              data-caption=""
+              aria-label="Open photo 39 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03727.webp"
+                  alt="Kendra and Nando, engagement photo 39"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-40"
+              data-index="39"
+              data-full="/gallery/cdp03734.webp"
+              data-caption=""
+              aria-label="Open photo 40 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03734.webp"
+                  alt="Kendra and Nando, engagement photo 40"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-41"
+              data-index="40"
+              data-full="/gallery/cdp03737.webp"
+              data-caption=""
+              aria-label="Open photo 41 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03737.webp"
+                  alt="Kendra and Nando, engagement photo 41"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-42"
+              data-index="41"
+              data-full="/gallery/cdp03752.webp"
+              data-caption=""
+              aria-label="Open photo 42 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03752.webp"
+                  alt="Kendra and Nando, engagement photo 42"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-43"
+              data-index="42"
+              data-full="/gallery/cdp03761.webp"
+              data-caption=""
+              aria-label="Open photo 43 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03761.webp"
+                  alt="Kendra and Nando, engagement photo 43"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-44"
+              data-index="43"
+              data-full="/gallery/cdp03769.webp"
+              data-caption=""
+              aria-label="Open photo 44 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03769.webp"
+                  alt="Kendra and Nando, engagement photo 44"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-45"
+              data-index="44"
+              data-full="/gallery/cdp03775.webp"
+              data-caption=""
+              aria-label="Open photo 45 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03775.webp"
+                  alt="Kendra and Nando, engagement photo 45"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-46"
+              data-index="45"
+              data-full="/gallery/cdp03777.webp"
+              data-caption=""
+              aria-label="Open photo 46 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03777.webp"
+                  alt="Kendra and Nando, engagement photo 46"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-47"
+              data-index="46"
+              data-full="/gallery/cdp03779.webp"
+              data-caption=""
+              aria-label="Open photo 47 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03779.webp"
+                  alt="Kendra and Nando, engagement photo 47"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-48"
+              data-index="47"
+              data-full="/gallery/cdp03788.webp"
+              data-caption=""
+              aria-label="Open photo 48 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03788.webp"
+                  alt="Kendra and Nando, engagement photo 48"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-49"
+              data-index="48"
+              data-full="/gallery/cdp03793.webp"
+              data-caption=""
+              aria-label="Open photo 49 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03793.webp"
+                  alt="Kendra and Nando, engagement photo 49"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-50"
+              data-index="49"
+              data-full="/gallery/cdp03797.webp"
+              data-caption=""
+              aria-label="Open photo 50 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03797.webp"
+                  alt="Kendra and Nando, engagement photo 50"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-51"
+              data-index="50"
+              data-full="/gallery/cdp03806.webp"
+              data-caption=""
+              aria-label="Open photo 51 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03806.webp"
+                  alt="Kendra and Nando, engagement photo 51"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-52"
+              data-index="51"
+              data-full="/gallery/cdp03807.webp"
+              data-caption=""
+              aria-label="Open photo 52 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp03807.webp"
+                  alt="Kendra and Nando, engagement photo 52"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-53"
+              data-index="52"
+              data-full="/gallery/cdp03810.webp"
+              data-caption=""
+              aria-label="Open photo 53 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03810.webp"
+                  alt="Kendra and Nando, engagement photo 53"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-54"
+              data-index="53"
+              data-full="/gallery/cdp03814.webp"
+              data-caption=""
+              aria-label="Open photo 54 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03814.webp"
+                  alt="Kendra and Nando, engagement photo 54"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-55"
+              data-index="54"
+              data-full="/gallery/cdp03818.webp"
+              data-caption=""
+              aria-label="Open photo 55 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03818.webp"
+                  alt="Kendra and Nando, engagement photo 55"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-56"
+              data-index="55"
+              data-full="/gallery/cdp03823.webp"
+              data-caption=""
+              aria-label="Open photo 56 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp03823.webp"
+                  alt="Kendra and Nando, engagement photo 56"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-57"
+              data-index="56"
+              data-full="/gallery/cdp03830.webp"
+              data-caption=""
+              aria-label="Open photo 57 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03830.webp"
+                  alt="Kendra and Nando, engagement photo 57"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-58"
+              data-index="57"
+              data-full="/gallery/cdp03832.webp"
+              data-caption=""
+              aria-label="Open photo 58 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 426">
+                <img
+                  src="/gallery/thumb/cdp03832.webp"
+                  alt="Kendra and Nando, engagement photo 58"
+                  width="640"
+                  height="426"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-59"
+              data-index="58"
+              data-full="/gallery/cdp03842.webp"
+              data-caption=""
+              aria-label="Open photo 59 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03842.webp"
+                  alt="Kendra and Nando, engagement photo 59"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-60"
+              data-index="59"
+              data-full="/gallery/cdp03843.webp"
+              data-caption=""
+              aria-label="Open photo 60 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03843.webp"
+                  alt="Kendra and Nando, engagement photo 60"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-61"
+              data-index="60"
+              data-full="/gallery/cdp03848.webp"
+              data-caption=""
+              aria-label="Open photo 61 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 426">
+                <img
+                  src="/gallery/thumb/cdp03848.webp"
+                  alt="Kendra and Nando, engagement photo 61"
+                  width="640"
+                  height="426"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-62"
+              data-index="61"
+              data-full="/gallery/cdp03852.webp"
+              data-caption=""
+              aria-label="Open photo 62 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03852.webp"
+                  alt="Kendra and Nando, engagement photo 62"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-63"
+              data-index="62"
+              data-full="/gallery/cdp03868.webp"
+              data-caption=""
+              aria-label="Open photo 63 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03868.webp"
+                  alt="Kendra and Nando, engagement photo 63"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-64"
+              data-index="63"
+              data-full="/gallery/cdp03871.webp"
+              data-caption=""
+              aria-label="Open photo 64 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03871.webp"
+                  alt="Kendra and Nando, engagement photo 64"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-65"
+              data-index="64"
+              data-full="/gallery/cdp03879.webp"
+              data-caption=""
+              aria-label="Open photo 65 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03879.webp"
+                  alt="Kendra and Nando, engagement photo 65"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-66"
+              data-index="65"
+              data-full="/gallery/cdp03884.webp"
+              data-caption=""
+              aria-label="Open photo 66 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03884.webp"
+                  alt="Kendra and Nando, engagement photo 66"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-67"
+              data-index="66"
+              data-full="/gallery/cdp03886.webp"
+              data-caption=""
+              aria-label="Open photo 67 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03886.webp"
+                  alt="Kendra and Nando, engagement photo 67"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-68"
+              data-index="67"
+              data-full="/gallery/cdp03894.webp"
+              data-caption=""
+              aria-label="Open photo 68 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp03894.webp"
+                  alt="Kendra and Nando, engagement photo 68"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-69"
+              data-index="68"
+              data-full="/gallery/cdp03898.webp"
+              data-caption=""
+              aria-label="Open photo 69 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03898.webp"
+                  alt="Kendra and Nando, engagement photo 69"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-70"
+              data-index="69"
+              data-full="/gallery/cdp03904.webp"
+              data-caption=""
+              aria-label="Open photo 70 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03904.webp"
+                  alt="Kendra and Nando, engagement photo 70"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-71"
+              data-index="70"
+              data-full="/gallery/cdp03907.webp"
+              data-caption=""
+              aria-label="Open photo 71 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03907.webp"
+                  alt="Kendra and Nando, engagement photo 71"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-72"
+              data-index="71"
+              data-full="/gallery/cdp03914.webp"
+              data-caption=""
+              aria-label="Open photo 72 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03914.webp"
+                  alt="Kendra and Nando, engagement photo 72"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-73"
+              data-index="72"
+              data-full="/gallery/cdp03917.webp"
+              data-caption=""
+              aria-label="Open photo 73 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03917.webp"
+                  alt="Kendra and Nando, engagement photo 73"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-74"
+              data-index="73"
+              data-full="/gallery/cdp03920.webp"
+              data-caption=""
+              aria-label="Open photo 74 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03920.webp"
+                  alt="Kendra and Nando, engagement photo 74"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-75"
+              data-index="74"
+              data-full="/gallery/cdp03926.webp"
+              data-caption=""
+              aria-label="Open photo 75 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03926.webp"
+                  alt="Kendra and Nando, engagement photo 75"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-76"
+              data-index="75"
+              data-full="/gallery/cdp03928.webp"
+              data-caption=""
+              aria-label="Open photo 76 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03928.webp"
+                  alt="Kendra and Nando, engagement photo 76"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-77"
+              data-index="76"
+              data-full="/gallery/cdp03936.webp"
+              data-caption=""
+              aria-label="Open photo 77 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03936.webp"
+                  alt="Kendra and Nando, engagement photo 77"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-78"
+              data-index="77"
+              data-full="/gallery/cdp03938.webp"
+              data-caption=""
+              aria-label="Open photo 78 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03938.webp"
+                  alt="Kendra and Nando, engagement photo 78"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-79"
+              data-index="78"
+              data-full="/gallery/cdp03944.webp"
+              data-caption=""
+              aria-label="Open photo 79 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03944.webp"
+                  alt="Kendra and Nando, engagement photo 79"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-80"
+              data-index="79"
+              data-full="/gallery/cdp03949.webp"
+              data-caption=""
+              aria-label="Open photo 80 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03949.webp"
+                  alt="Kendra and Nando, engagement photo 80"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-81"
+              data-index="80"
+              data-full="/gallery/cdp03952.webp"
+              data-caption=""
+              aria-label="Open photo 81 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03952.webp"
+                  alt="Kendra and Nando, engagement photo 81"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-82"
+              data-index="81"
+              data-full="/gallery/cdp03957.webp"
+              data-caption=""
+              aria-label="Open photo 82 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03957.webp"
+                  alt="Kendra and Nando, engagement photo 82"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-83"
+              data-index="82"
+              data-full="/gallery/cdp03963.webp"
+              data-caption=""
+              aria-label="Open photo 83 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03963.webp"
+                  alt="Kendra and Nando, engagement photo 83"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-84"
+              data-index="83"
+              data-full="/gallery/cdp03968.webp"
+              data-caption=""
+              aria-label="Open photo 84 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03968.webp"
+                  alt="Kendra and Nando, engagement photo 84"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-85"
+              data-index="84"
+              data-full="/gallery/cdp03972.webp"
+              data-caption=""
+              aria-label="Open photo 85 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp03972.webp"
+                  alt="Kendra and Nando, engagement photo 85"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-86"
+              data-index="85"
+              data-full="/gallery/cdp03978.webp"
+              data-caption=""
+              aria-label="Open photo 86 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03978.webp"
+                  alt="Kendra and Nando, engagement photo 86"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-87"
+              data-index="86"
+              data-full="/gallery/cdp03981.webp"
+              data-caption=""
+              aria-label="Open photo 87 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03981.webp"
+                  alt="Kendra and Nando, engagement photo 87"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-88"
+              data-index="87"
+              data-full="/gallery/cdp03985.webp"
+              data-caption=""
+              aria-label="Open photo 88 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03985.webp"
+                  alt="Kendra and Nando, engagement photo 88"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-89"
+              data-index="88"
+              data-full="/gallery/cdp03996.webp"
+              data-caption=""
+              aria-label="Open photo 89 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp03996.webp"
+                  alt="Kendra and Nando, engagement photo 89"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-90"
+              data-index="89"
+              data-full="/gallery/cdp04010.webp"
+              data-caption=""
+              aria-label="Open photo 90 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 961">
+                <img
+                  src="/gallery/thumb/cdp04010.webp"
+                  alt="Kendra and Nando, engagement photo 90"
+                  width="640"
+                  height="961"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-91"
+              data-index="90"
+              data-full="/gallery/cdp04014.webp"
+              data-caption=""
+              aria-label="Open photo 91 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04014.webp"
+                  alt="Kendra and Nando, engagement photo 91"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-92"
+              data-index="91"
+              data-full="/gallery/cdp04036.webp"
+              data-caption=""
+              aria-label="Open photo 92 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04036.webp"
+                  alt="Kendra and Nando, engagement photo 92"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-93"
+              data-index="92"
+              data-full="/gallery/cdp04043.webp"
+              data-caption=""
+              aria-label="Open photo 93 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04043.webp"
+                  alt="Kendra and Nando, engagement photo 93"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-94"
+              data-index="93"
+              data-full="/gallery/cdp04049.webp"
+              data-caption=""
+              aria-label="Open photo 94 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 426">
+                <img
+                  src="/gallery/thumb/cdp04049.webp"
+                  alt="Kendra and Nando, engagement photo 94"
+                  width="640"
+                  height="426"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-95"
+              data-index="94"
+              data-full="/gallery/cdp04053.webp"
+              data-caption=""
+              aria-label="Open photo 95 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04053.webp"
+                  alt="Kendra and Nando, engagement photo 95"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-96"
+              data-index="95"
+              data-full="/gallery/cdp04058.webp"
+              data-caption=""
+              aria-label="Open photo 96 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04058.webp"
+                  alt="Kendra and Nando, engagement photo 96"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-97"
+              data-index="96"
+              data-full="/gallery/cdp04062.webp"
+              data-caption=""
+              aria-label="Open photo 97 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04062.webp"
+                  alt="Kendra and Nando, engagement photo 97"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-98"
+              data-index="97"
+              data-full="/gallery/cdp04070.webp"
+              data-caption=""
+              aria-label="Open photo 98 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04070.webp"
+                  alt="Kendra and Nando, engagement photo 98"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-99"
+              data-index="98"
+              data-full="/gallery/cdp04073.webp"
+              data-caption=""
+              aria-label="Open photo 99 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04073.webp"
+                  alt="Kendra and Nando, engagement photo 99"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-100"
+              data-index="99"
+              data-full="/gallery/cdp04082.webp"
+              data-caption=""
+              aria-label="Open photo 100 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 426">
+                <img
+                  src="/gallery/thumb/cdp04082.webp"
+                  alt="Kendra and Nando, engagement photo 100"
+                  width="640"
+                  height="426"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-101"
+              data-index="100"
+              data-full="/gallery/cdp04093.webp"
+              data-caption=""
+              aria-label="Open photo 101 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 427">
+                <img
+                  src="/gallery/thumb/cdp04093.webp"
+                  alt="Kendra and Nando, engagement photo 101"
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-102"
+              data-index="101"
+              data-full="/gallery/cdp04098.webp"
+              data-caption=""
+              aria-label="Open photo 102 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 426">
+                <img
+                  src="/gallery/thumb/cdp04098.webp"
+                  alt="Kendra and Nando, engagement photo 102"
+                  width="640"
+                  height="426"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-103"
+              data-index="102"
+              data-full="/gallery/cdp04102.webp"
+              data-caption=""
+              aria-label="Open photo 103 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04102.webp"
+                  alt="Kendra and Nando, engagement photo 103"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-104"
+              data-index="103"
+              data-full="/gallery/cdp04105.webp"
+              data-caption=""
+              aria-label="Open photo 104 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04105.webp"
+                  alt="Kendra and Nando, engagement photo 104"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-105"
+              data-index="104"
+              data-full="/gallery/cdp04109.webp"
+              data-caption=""
+              aria-label="Open photo 105 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04109.webp"
+                  alt="Kendra and Nando, engagement photo 105"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-106"
+              data-index="105"
+              data-full="/gallery/cdp04121.webp"
+              data-caption=""
+              aria-label="Open photo 106 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04121.webp"
+                  alt="Kendra and Nando, engagement photo 106"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-107"
+              data-index="106"
+              data-full="/gallery/cdp04127.webp"
+              data-caption=""
+              aria-label="Open photo 107 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04127.webp"
+                  alt="Kendra and Nando, engagement photo 107"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-108"
+              data-index="107"
+              data-full="/gallery/cdp04138.webp"
+              data-caption=""
+              aria-label="Open photo 108 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04138.webp"
+                  alt="Kendra and Nando, engagement photo 108"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-109"
+              data-index="108"
+              data-full="/gallery/cdp04143.webp"
+              data-caption=""
+              aria-label="Open photo 109 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04143.webp"
+                  alt="Kendra and Nando, engagement photo 109"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-110"
+              data-index="109"
+              data-full="/gallery/cdp04144.webp"
+              data-caption=""
+              aria-label="Open photo 110 of 110"
+            >
+              <figure class="photo-slot" style="aspect-ratio: 640 / 960">
+                <img
+                  src="/gallery/thumb/cdp04144.webp"
+                  alt="Kendra and Nando, engagement photo 110"
+                  width="640"
+                  height="960"
+                  loading="lazy"
+                  decoding="async"
+                />
               </figure>
             </button>
           </div>
@@ -359,7 +2443,7 @@
         if (full) {
           const img = document.createElement("img");
           img.src = full;
-          img.alt = label;
+          img.alt = tile.querySelector("img")?.alt ?? label;
           art.appendChild(img);
         } else {
           // Placeholder enlarged — mirrors the tile's look until real photos land.
@@ -376,7 +2460,7 @@
           slot.append(glyph, cap);
           art.appendChild(slot);
         }
-        caption.textContent = label;
+        caption.textContent = label || `${current + 1} / ${tiles.length}`;
       }
 
       function open(index) {

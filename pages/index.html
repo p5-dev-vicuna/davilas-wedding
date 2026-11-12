@@ -92,15 +92,15 @@
       <!-- HERO — recreates the save-the-date: sage photo panel left, cream text panel right. -->
       <section class="hero" data-testid="hero">
         <div class="hero-sage">
-          <!--
-            ✏️ COUPLE: ENGAGEMENT PHOTO GOES HERE.
-            1. Drop a favorite engagement photo into  public/  (e.g. public/hero.jpg)
-            2. Replace the <figure class="photo-slot" …> below with:
-                 <img src="/hero.jpg" alt="Kendra and Nando" style="width:100%;height:100%;object-fit:cover;" />
-          -->
-          <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 5">
-            <span class="photo-glyph" aria-hidden="true">❦</span>
-            <figcaption class="photo-label">engagement photo</figcaption>
+          <!-- Hero photo: public/hero.webp (engagement session, 1600px tall WebP). -->
+          <figure class="photo-slot hero-photo" style="aspect-ratio: 4 / 5">
+            <img
+              src="/hero.webp"
+              alt="Kendra hugging Nando from behind while sitting on a stone wall in the woods"
+              width="1067"
+              height="1600"
+              fetchpriority="high"
+            />
           </figure>
           <span class="hero-script" data-testid="hero-script">The Davilas</span>
         </div>
