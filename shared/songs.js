@@ -5,14 +5,21 @@
  * JSON encoding keeps the pair unambiguous even if a title contains
  * delimiter-like characters. */
 export function songKey(title, artist) {
-  const pair = [String(title ?? '').trim().toLowerCase(), String(artist ?? '').trim().toLowerCase()]
-  return JSON.stringify(pair)
+  const pair = [
+    String(title ?? "")
+      .trim()
+      .toLowerCase(),
+    String(artist ?? "")
+      .trim()
+      .toLowerCase(),
+  ];
+  return JSON.stringify(pair);
 }
 
 /** First word of a name ("Mary Jane Watson" → "Mary"). Used for privacy on the public list. */
 export function firstName(name) {
-  const trimmed = String(name ?? '').trim()
-  return trimmed ? trimmed.split(/\s+/)[0] : ''
+  const trimmed = String(name ?? "").trim();
+  return trimmed ? trimmed.split(/\s+/)[0] : "";
 }
 
 /**
@@ -21,37 +28,40 @@ export function firstName(name) {
  * sorted by count (most requested first), then title A→Z, then artist A→Z.
  */
 export function aggregateSongs(rows) {
-  if (!Array.isArray(rows)) return []
-  const map = new Map()
+  if (!Array.isArray(rows)) return [];
+  const map = new Map();
 
   for (const row of rows) {
-    if (!row || typeof row !== 'object') continue
-    const title = String(row.title ?? '').trim()
-    const artist = String(row.artist ?? '').trim()
-    if (!title && !artist) continue
+    if (!row || typeof row !== "object") continue;
+    const title = String(row.title ?? "").trim();
+    const artist = String(row.artist ?? "").trim();
+    if (!title && !artist) continue;
 
-    const key = songKey(title, artist)
-    const createdAt = row.createdAt ?? ''
-    const existing = map.get(key)
+    const key = songKey(title, artist);
+    const createdAt = row.createdAt ?? "";
+    const existing = map.get(key);
 
     if (existing) {
-      existing.count += 1
+      existing.count += 1;
       if (String(createdAt) > String(existing.latestAt)) {
-        existing.latestAt = createdAt
-        existing.requestedBy = row.requestedBy ?? existing.requestedBy
+        existing.latestAt = createdAt;
+        existing.requestedBy = row.requestedBy ?? existing.requestedBy;
       }
     } else {
       map.set(key, {
         title,
         artist,
-        requestedBy: row.requestedBy ?? '',
+        requestedBy: row.requestedBy ?? "",
         count: 1,
         latestAt: createdAt,
-      })
+      });
     }
   }
 
   return [...map.values()].sort(
-    (a, b) => b.count - a.count || a.title.localeCompare(b.title) || a.artist.localeCompare(b.artist)
-  )
+    (a, b) =>
+      b.count - a.count ||
+      a.title.localeCompare(b.title) ||
+      a.artist.localeCompare(b.artist),
+  );
 }

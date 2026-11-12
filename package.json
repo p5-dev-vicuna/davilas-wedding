@@ -3,27 +3,23 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Wedding website for Kendra & Nando — The Davilas. October 23, 2027 · 1513 at Stone Creek · Rockmart, GA.",
+  "description": "Wedding website for Kendra & Nando — The Davilas. October 23, 2027 · 1513 at Stone Creek · Rockmart, GA. Bun-native stack: no Astro, no Hono, no Vitest, no runtime dependencies.",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "start": "node server/index.js",
-    "test": "vitest run",
-    "test:unit": "vitest run",
-    "test:e2e": "node scripts/run-e2e.mjs"
-  },
-  "dependencies": {
-    "@hono/node-server": "^1.14.0",
-    "@neondatabase/serverless": "^0.10.4",
-    "hono": "^4.7.0"
+    "dev": "BUN_DEV=1 bun server/index.js",
+    "build": "bun build --target=bun --dts --root . --entry-naming \"[name].[ext]\" server/index.js --outdir dist",
+    "start": "cd dist && bun index.js",
+    "typecheck": "bun check",
+    "lint": "bun lint --no-script",
+    "fmt": "bun fmt --no-script",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:e2e": "bun scripts/run-e2e.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "astro": "^5.8.0",
-    "vitest": "^3.1.0"
+    "bun-types": "^1.4.4"
   },
   "engines": {
-    "node": ">=20"
+    "bun": ">=1.4.4"
   }
 }

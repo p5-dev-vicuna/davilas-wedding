@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gallery · The Davilas</title>
+    <meta
+      name="description"
+      content="Moments and memories from Kendra & Nando — engagement photos and more."
+    />
+    <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../public/styles/global.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" data-testid="site-header">
+      <div class="header-inner">
+        <a class="monogram" href="/" data-testid="monogram">The Davilas</a>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          data-testid="nav-toggle"
+        >
+          <span class="visually-hidden">Toggle navigation</span>
+          <span class="nav-toggle-icon" aria-hidden="true">☰</span>
+        </button>
+        <nav
+          id="site-nav"
+          class="site-nav"
+          aria-label="Main navigation"
+          data-testid="site-nav"
+        >
+          <ul>
+            <li>
+              <a href="/" data-testid="nav-home">Home</a>
+            </li>
+            <li>
+              <a href="/about" data-testid="nav-about">Get to Know Us</a>
+            </li>
+            <li>
+              <a href="/gallery" data-testid="nav-gallery" aria-current="page"
+                >Gallery</a
+              >
+            </li>
+            <li>
+              <a href="/wedding-party" data-testid="nav-wedding-party"
+                >Wedding Party</a
+              >
+            </li>
+            <li>
+              <a href="/details" data-testid="nav-details">Wedding Details</a>
+            </li>
+            <li>
+              <a href="/schedule" data-testid="nav-schedule">Schedule</a>
+            </li>
+            <li>
+              <a href="/travel" data-testid="nav-travel">Travel</a>
+            </li>
+            <li>
+              <a href="/registry" data-testid="nav-registry">Registry</a>
+            </li>
+          </ul>
+        </nav>
+        <!-- RSVP: the standout header button, opposite the nav, on every page. -->
+        <a class="btn header-rsvp" href="/rsvp" data-testid="header-rsvp"
+          >RSVP</a
+        >
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page">
+        <div class="container">
+          <header class="page-header">
+            <h1 class="section-title" data-testid="gallery-heading">Gallery</h1>
+            <div class="divider" role="separator" aria-hidden="true">
+              <span class="divider-rule"></span>
+              <span class="divider-glyph">❦</span>
+              <span class="divider-rule"></span>
+            </div>
+            <p class="lede" data-testid="gallery-lede">
+              A few of our favorite moments — click any photo to view it larger.
+            </p>
+          </header>
+
+          <!--
+            ✏️✏️✏️ COUPLE: GALLERY PHOTOS ✏️✏️✏️
+            1. Drop photos into  public/gallery/  (see public/gallery/README.md).
+            2. For each tile below, set  data-full="/gallery/your-file.jpg"  and
+               write a short alt + caption. Tiles with an empty data-full show a
+               placeholder.
+            3. The placeholder aspect-ratio varies per tile so the masonry grid
+               feels organic — tweak freely.
+            Tiles map one-to-one with photos, in order.
+          -->
+          <div class="gallery-grid" data-testid="gallery-grid">
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-1"
+              data-index="0"
+              data-full=""
+              data-caption="The two of us"
+              aria-label="Open photo: The two of us"
+            >
+              <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 5">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">The two of us</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-2"
+              data-index="1"
+              data-full=""
+              data-caption="The proposal"
+              aria-label="Open photo: The proposal"
+            >
+              <figure class="photo-slot tone-gold" style="aspect-ratio: 1 / 1">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">The proposal</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-3"
+              data-index="2"
+              data-full=""
+              data-caption="Golden hour"
+              aria-label="Open photo: Golden hour"
+            >
+              <figure class="photo-slot tone-cream" style="aspect-ratio: 4 / 3">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">Golden hour</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-4"
+              data-index="3"
+              data-full=""
+              data-caption="Sunday drives"
+              aria-label="Open photo: Sunday drives"
+            >
+              <figure class="photo-slot tone-gold" style="aspect-ratio: 3 / 4">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">Sunday drives</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-5"
+              data-index="4"
+              data-full=""
+              data-caption="Game night"
+              aria-label="Open photo: Game night"
+            >
+              <figure class="photo-slot tone-sage" style="aspect-ratio: 1 / 1">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">Game night</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-6"
+              data-index="5"
+              data-full=""
+              data-caption="On the trail"
+              aria-label="Open photo: On the trail"
+            >
+              <figure class="photo-slot tone-cream" style="aspect-ratio: 4 / 5">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">On the trail</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-7"
+              data-index="6"
+              data-full=""
+              data-caption="Coffee dates"
+              aria-label="Open photo: Coffee dates"
+            >
+              <figure class="photo-slot tone-sage" style="aspect-ratio: 4 / 3">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">Coffee dates</figcaption>
+              </figure>
+            </button>
+            <button
+              type="button"
+              class="gallery-tile"
+              data-testid="gallery-tile-8"
+              data-index="7"
+              data-full=""
+              data-caption="Us, always"
+              aria-label="Open photo: Us, always"
+            >
+              <figure class="photo-slot tone-gold" style="aspect-ratio: 3 / 4">
+                <span class="photo-glyph" aria-hidden="true">❦</span>
+                <figcaption class="photo-label">Us, always</figcaption>
+              </figure>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lightbox — vanilla JS, no library (see the script at the bottom). -->
+      <div
+        class="lightbox"
+        data-testid="lightbox"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-label="Photo viewer"
+      >
+        <button
+          type="button"
+          class="lightbox-close"
+          data-testid="lightbox-close"
+          aria-label="Close photo viewer"
+        >
+          ✕
+        </button>
+        <button
+          type="button"
+          class="lightbox-nav lightbox-prev"
+          data-testid="lightbox-prev"
+          aria-label="Previous photo"
+        >
+          ‹
+        </button>
+        <figure class="lightbox-figure">
+          <div id="lightbox-art" data-testid="lightbox-art">
+            <!-- filled by script -->
+          </div>
+          <figcaption
+            class="lightbox-caption"
+            data-testid="lightbox-caption"
+          ></figcaption>
+        </figure>
+        <button
+          type="button"
+          class="lightbox-nav lightbox-next"
+          data-testid="lightbox-next"
+          aria-label="Next photo"
+        >
+          ›
+        </button>
+      </div>
+    </main>
+
+    <footer class="site-footer" data-testid="site-footer">
+      <p class="footer-names script">Kendra &amp; Nando</p>
+      <p class="footer-line" data-testid="footer-event-line">
+        Saturday, October 23, 2027 · 1513 at Stone Creek · Rockmart, Georgia
+      </p>
+      <div class="divider divider-light" aria-hidden="true">
+        <span class="divider-rule"></span>
+        <span class="divider-glyph">❦</span>
+        <span class="divider-rule"></span>
+      </div>
+      <nav class="footer-links" aria-label="Footer" data-testid="footer-nav">
+        <a href="/songs" data-testid="footer-songs-link">Song Requests</a>
+        <span aria-hidden="true">·</span>
+        <a href="/faq" data-testid="footer-faq-link">FAQ</a>
+      </nav>
+      <p class="footer-contact">
+        Questions? Reach out to Kendra &amp; Nando — we can't wait to celebrate
+        with you.
+      </p>
+      <p class="fineprint" aria-hidden="true">
+        ❦ with love, from the soon-to-be Davilas ❦
+      </p>
+    </footer>
+
+    <script>
+      const header = document.querySelector(".site-header");
+      const toggle = document.querySelector(".nav-toggle");
+
+      toggle?.addEventListener("click", () => {
+        const open = header.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+        const icon = toggle.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = open ? "✕" : "☰";
+      });
+
+      // Close the mobile menu after choosing a destination.
+      document.querySelectorAll(".site-nav a").forEach((link) =>
+        link.addEventListener("click", () => {
+          header.classList.remove("open");
+          toggle?.setAttribute("aria-expanded", "false");
+          const icon = toggle?.querySelector(".nav-toggle-icon");
+          if (icon) icon.textContent = "☰";
+        }),
+      );
+    </script>
+
+    <script>
+      const tiles = Array.from(document.querySelectorAll(".gallery-tile"));
+      const lightbox = document.querySelector('[data-testid="lightbox"]');
+      const art = document.getElementById("lightbox-art");
+      const caption = document.querySelector(
+        '[data-testid="lightbox-caption"]',
+      );
+      const closeBtn = document.querySelector('[data-testid="lightbox-close"]');
+      const prevBtn = document.querySelector('[data-testid="lightbox-prev"]');
+      const nextBtn = document.querySelector('[data-testid="lightbox-next"]');
+
+      let current = 0;
+      let lastFocused = null;
+
+      function render() {
+        const tile = tiles[current];
+        if (!tile || !art || !caption) return;
+        const full = tile.dataset.full ?? "";
+        const label = tile.dataset.caption ?? "";
+        art.innerHTML = "";
+        if (full) {
+          const img = document.createElement("img");
+          img.src = full;
+          img.alt = label;
+          art.appendChild(img);
+        } else {
+          // Placeholder enlarged — mirrors the tile's look until real photos land.
+          const slot = document.createElement("figure");
+          slot.className = "photo-slot";
+          slot.style.aspectRatio = "4 / 3";
+          const glyph = document.createElement("span");
+          glyph.className = "photo-glyph";
+          glyph.setAttribute("aria-hidden", "true");
+          glyph.textContent = "❦";
+          const cap = document.createElement("figcaption");
+          cap.className = "photo-label";
+          cap.textContent = label;
+          slot.append(glyph, cap);
+          art.appendChild(slot);
+        }
+        caption.textContent = label;
+      }
+
+      function open(index) {
+        current = index;
+        render();
+        lastFocused = document.activeElement;
+        lightbox?.removeAttribute("hidden");
+        closeBtn?.focus();
+      }
+
+      function close() {
+        lightbox?.setAttribute("hidden", "");
+        lastFocused?.focus();
+      }
+
+      function step(delta) {
+        if (tiles.length === 0) return;
+        current = (current + delta + tiles.length) % tiles.length;
+        render();
+      }
+
+      document
+        .querySelector(".gallery-grid")
+        ?.addEventListener("click", (event) => {
+          const tile = event.target.closest(".gallery-tile");
+          if (tile) open(Number(tile.dataset.index ?? 0));
+        });
+
+      closeBtn?.addEventListener("click", close);
+      prevBtn?.addEventListener("click", () => step(-1));
+      nextBtn?.addEventListener("click", () => step(1));
+
+      // Backdrop click closes (clicks inside the figure/controls are ignored).
+      lightbox?.addEventListener("click", (event) => {
+        if (event.target === lightbox) close();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (!lightbox || lightbox.hidden) return;
+        if (event.key === "Escape") close();
+        if (event.key === "ArrowLeft") step(-1);
+        if (event.key === "ArrowRight") step(1);
+      });
+    </script>
+  </body>
+</html>

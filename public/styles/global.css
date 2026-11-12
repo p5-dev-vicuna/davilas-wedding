@@ -1375,9 +1375,9 @@ textarea {
     padding-top: calc(var(--win-w) * 2.3433);
     padding-bottom: calc(var(--win-w) * 1.0933);
     background:
-      url('/glass/bradstreet-top.webp') top / 100% auto no-repeat,
-      url('/glass/bradstreet-roots.webp') bottom / 100% auto no-repeat,
-      url('/glass/bradstreet-trunk.webp') top / 100% auto no-repeat round,
+      url('../glass/bradstreet-top.webp') top / 100% auto no-repeat,
+      url('../glass/bradstreet-roots.webp') bottom / 100% auto no-repeat,
+      url('../glass/bradstreet-trunk.webp') top / 100% auto no-repeat round,
       var(--clear-glass);
     background-origin: padding-box, padding-box, content-box, padding-box;
     background-clip: padding-box, padding-box, content-box, padding-box;
@@ -1429,7 +1429,7 @@ textarea {
     border-bottom: 4px solid var(--oak);
     background:
       linear-gradient(var(--gold), var(--gold)) top / 100% 1px no-repeat,
-      url('/glass/bradstreet-transom.webp') center / auto 100% repeat-x,
+      url('../glass/bradstreet-transom.webp') center / auto 100% repeat-x,
       var(--clear-glass);
   }
 

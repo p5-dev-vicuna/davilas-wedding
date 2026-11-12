@@ -1,0 +1,52 @@
+# Dockerfile.bun — Coolify deploy image for the `bun-native` branch.
+# Bun-native only: no npm/npx/yarn anywhere in the image. `main` keeps the
+# Node-based Dockerfile; the Coolify app for this branch points here.
+#
+# Base tags verified on Docker Hub 2026-11-11 (no dated canary tag exists —
+# only canary, canary-debian, canary-slim, canary-distroless, canary-alpine):
+#   oven/bun:canary      index digest sha256:2d64ae2d0789e0db8f6cbaac3c6197e81fa9fae1aa741ff6c291277e127f495e
+#   oven/bun:canary-slim index digest sha256:7ecc7e5470ffd9e2742a3e94723838b3a30cfb28cede547a4930b161d1395399
+# Digests also recorded in BUN_REWRITE_REPORT.md (§ Dockerfile.bun).
+
+FROM oven/bun:canary AS deps
+WORKDIR /app
+# Lockfile-hash keyed layer: these two COPY lines are the turbo-style cache
+# primitive — this layer (and only this layer) invalidates when package.json
+# or bun.lock change. (bunfig.toml holds no [install] section, so the install
+# does not need it.)
+COPY package.json bun.lock ./
+# frozen-lockfile = the hash check: hard-fails if lock and manifest disagree.
+# Never --no-frozen-lockfile. The BuildKit cache mount keeps Bun's package
+# cache across builds (Coolify builds with BuildKit enabled).
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
+
+FROM oven/bun:canary AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# package.json "build" is exactly:
+#   bun build --target=bun --dts --root . --entry-naming "[name].[ext]" \
+#     server/index.js --outdir dist
+# (--dts type-checks the entry graph, so this doubles as the server-side type
+# gate.) There is no build:client step on this branch — static assets stay
+# static. Running the script keeps the image build identical to `bun run build`.
+RUN bun run build
+
+FROM oven/bun:canary-slim AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+# Production layout (mirrors the verified `bun run start` = `cd dist && bun index.js`):
+#   dist/            server bundle + pre-built pages + hashed assets + .d.ts
+#   pages/404.html   styled 404, read from disk at <bundle dir>/../pages/404.html
+#   public/          unhashed assets served from disk (favicon, global.css,
+#                    future gallery/wedding-party photos)
+# Zero runtime dependencies (devDeps only; the bundle imports nothing but
+# node:/bun builtins) — node_modules is deliberately NOT copied.
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/pages/404.html ./pages/404.html
+COPY --from=build /app/public ./public
+# Bun resolves the built asset manifest relative to the process CWD, so the
+# entry must run from inside dist/ — same as `bun run start`.
+WORKDIR /app/dist
+EXPOSE 3000
+CMD ["bun", "index.js"]

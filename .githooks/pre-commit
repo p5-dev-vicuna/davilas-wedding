@@ -1,0 +1,33 @@
+#!/bin/sh
+# Pre-commit hook — The Davilas (bun-native branch).
+#
+# Activate once per clone:   git config core.hooksPath .githooks
+# (Committed in-repo so every clone can opt in with that one command.)
+#
+# Quality gate, all Bun-built-in (no husky, no lint-staged, no eslint deps):
+#   1. bun fmt --staged  — format ONLY staged files, then re-stage them
+#   2. bun lint          — zero-errors required
+#   3. bun check         — type check (non-zero exit blocks the commit)
+
+# Find bun: on PATH first, then the default per-user install location
+# (~/.bun/bin — common on Windows where git's sh may not inherit it).
+if command -v bun >/dev/null 2>&1; then
+  BUN=bun
+elif [ -x "$HOME/.bun/bin/bun" ]; then
+  BUN="$HOME/.bun/bin/bun"
+else
+  echo "pre-commit: bun not found on PATH or in ~/.bun/bin — cannot run the quality gate." >&2
+  echo "pre-commit: install Bun (https://bun.sh) or add it to PATH, then commit again." >&2
+  exit 1
+fi
+
+echo "pre-commit: bun fmt --staged"
+"$BUN" fmt --no-script --staged || exit 1
+
+echo "pre-commit: bun lint"
+"$BUN" lint --no-script || exit 1
+
+echo "pre-commit: bun check (typecheck)"
+"$BUN" check || exit 1
+
+echo "pre-commit: all checks passed."
