@@ -3,6 +3,17 @@
 
 export const RSVP_LIMITS = { name: 120, allergies: 500, song: 200, notes: 1000, partyMin: 1, partyMax: 10 }
 export const SONG_LIMITS = { title: 200, artist: 200, name: 120 }
+export const ADDRESS_LIMITS = {
+  name: 120,
+  street: 200,
+  unit: 30,
+  city: 100,
+  state: 50,
+  postal: 20,
+  country: 100,
+  notes: 500,
+  token: 64,
+}
 
 function str(value) {
   return typeof value === 'string' ? value.trim() : null
@@ -118,4 +129,90 @@ export function validateSong(input) {
   if (Object.keys(errors).length > 0) return { ok: false, errors }
 
   return { ok: true, value: { title, artist, requested_by } }
+}
+
+/**
+ * Validate a mailing-address payload (pre-RSVP address capture).
+ * `guest_token` is the silent ?g=<token> from a personal SMS link — optional,
+ * stored as-is when present. `country` defaults to 'USA' when omitted.
+ * @returns {{ ok: true, value: object } | { ok: false, errors: Record<string,string> }}
+ */
+export function validateAddress(input) {
+  if (!isPlainObject(input)) {
+    return { ok: false, errors: { _form: 'Expected a JSON object.' } }
+  }
+
+  const errors = {}
+
+  const full_name = str(input.full_name)
+  if (!full_name) {
+    errors.full_name = 'Please add the name(s) for your envelope.'
+  } else if (full_name.length > ADDRESS_LIMITS.name) {
+    errors.full_name = `Name must be ${ADDRESS_LIMITS.name} characters or fewer.`
+  }
+
+  const street = str(input.street)
+  if (!street) {
+    errors.street = 'Please add your street address.'
+  } else if (street.length > ADDRESS_LIMITS.street) {
+    errors.street = `Street address must be ${ADDRESS_LIMITS.street} characters or fewer.`
+  }
+
+  const unit = str(input.unit)
+  if (unit && unit.length > ADDRESS_LIMITS.unit) {
+    errors.unit = `Apt / unit must be ${ADDRESS_LIMITS.unit} characters or fewer.`
+  }
+
+  const city = str(input.city)
+  if (!city) {
+    errors.city = 'Please add your city.'
+  } else if (city.length > ADDRESS_LIMITS.city) {
+    errors.city = `City must be ${ADDRESS_LIMITS.city} characters or fewer.`
+  }
+
+  const state = str(input.state)
+  if (!state) {
+    errors.state = 'Please add your state.'
+  } else if (state.length > ADDRESS_LIMITS.state) {
+    errors.state = `State must be ${ADDRESS_LIMITS.state} characters or fewer.`
+  }
+
+  const postal_code = str(input.postal_code)
+  if (!postal_code) {
+    errors.postal_code = 'Please add your ZIP / postal code.'
+  } else if (postal_code.length > ADDRESS_LIMITS.postal) {
+    errors.postal_code = `ZIP / postal code must be ${ADDRESS_LIMITS.postal} characters or fewer.`
+  }
+
+  const country = str(input.country)
+  if (country && country.length > ADDRESS_LIMITS.country) {
+    errors.country = `Country must be ${ADDRESS_LIMITS.country} characters or fewer.`
+  }
+
+  const notes = str(input.notes)
+  if (notes && notes.length > ADDRESS_LIMITS.notes) {
+    errors.notes = `Please keep this under ${ADDRESS_LIMITS.notes} characters.`
+  }
+
+  const guest_token = str(input.guest_token)
+  if (guest_token && guest_token.length > ADDRESS_LIMITS.token) {
+    errors.guest_token = 'Please open your personal link from the text message and try again.'
+  }
+
+  if (Object.keys(errors).length > 0) return { ok: false, errors }
+
+  return {
+    ok: true,
+    value: {
+      full_name,
+      street,
+      unit: unit || null,
+      city,
+      state,
+      postal_code,
+      country: country || 'USA',
+      notes: notes || null,
+      guest_token: guest_token || null,
+    },
+  }
 }

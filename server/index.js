@@ -12,13 +12,14 @@ const port = Number(process.env.PORT) || 3000
 
 if (!dbConfigured()) {
   console.warn(
-    '\n[server] DATABASE_URL is not set — RSVP and song submissions will return 503\n' +
+    '\n[server] DATABASE_URL is not set — RSVP, song, and address submissions will return 503\n' +
       '          until Neon credentials are configured. Copy .env.example to .env to start.\n'
   )
 }
 if (!process.env.ADMIN_KEY) {
   console.warn(
-    '[server] ADMIN_KEY is not set — admin endpoints (GET /api/rsvps, /api/rsvps.csv) are disabled.\n'
+    '[server] ADMIN_KEY is not set — admin endpoints (GET /api/rsvps, /api/rsvps.csv,\n' +
+      '         /api/addresses, /api/addresses.csv) are disabled.\n'
   )
 }
 

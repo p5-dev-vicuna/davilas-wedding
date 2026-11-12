@@ -15,6 +15,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY server ./server
 COPY shared ./shared
 COPY schema.sql ./schema.sql
+COPY migrations ./migrations
 COPY --from=build /app/dist ./dist
 
 EXPOSE 3000

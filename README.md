@@ -33,34 +33,75 @@ Copy `.env.example` to `.env` (the server loads it automatically; real env vars 
 ```ini
 DATABASE_URL=postgresql://user:password@ep-...neon.tech/neondb?sslmode=require
 ADMIN_KEY=a-long-random-string
+# SITE_URL=https://your-host   # only scripts/import_guests.mjs reads this
 # PORT=3000
 ```
 
 - **`DATABASE_URL`** — Neon connection string. Run `schema.sql` once against the
-  database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps` and
-  `song_requests` tables. **Until this is set, `POST /api/rsvp` and
-  `POST /api/song` return 503 with a friendly message** (and `GET /api/songs`
-  returns an empty list) — so the site can deploy before credentials exist.
+  database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps`,
+  `song_requests`, and `addresses` tables (existing databases: apply
+  `migrations/001_add_addresses.sql` for the addresses table alone). **Until
+  this is set, `POST /api/rsvp`, `POST /api/song`, and `POST /api/address`
+  return 503 with a friendly message** (and `GET /api/songs` returns an empty
+  list) — so the site can deploy before credentials exist.
 - **`ADMIN_KEY`** — bearer token guarding the admin exports. Requests must send
   `Authorization: Bearer <ADMIN_KEY>`:
 
   ```bash
-  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps      # JSON
-  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps.csv  # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps        # JSON
+  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/rsvps.csv    # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses    # JSON (matched/unmatched)
+  curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv # spreadsheet
   ```
 
 ## API
 
-| Endpoint         | Method | Auth    | Notes                                            |
-| ---------------- | ------ | ------- | ------------------------------------------------ |
-| `/api/rsvp`      | POST   | —       | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
-| `/api/song`      | POST   | —       | Validates (title/artist/name), inserts into `song_requests` |
-| `/api/songs`     | GET    | —       | Latest 100 requests; first names only            |
-| `/api/rsvps`     | GET    | ADMIN_KEY | All RSVPs as JSON                              |
-| `/api/rsvps.csv` | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)              |
+| Endpoint             | Method | Auth      | Notes                                            |
+| -------------------- | ------ | --------- | ------------------------------------------------ |
+| `/api/rsvp`          | POST   | —         | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
+| `/api/song`          | POST   | —         | Validates (title/artist/name), inserts into `song_requests` |
+| `/api/songs`         | GET    | —         | Latest 100 requests; first names only            |
+| `/api/rsvps`         | GET    | ADMIN_KEY | All RSVPs as JSON                              |
+| `/api/rsvps.csv`     | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)              |
+| `/api/address`       | POST   | —         | Validates (required fields, length caps), inserts into `addresses` |
+| `/api/addresses`     | GET    | ADMIN_KEY | Addresses as JSON, grouped `matched` (via personal link) / `unmatched` (typed manually) |
+| `/api/addresses.csv` | GET    | ADMIN_KEY | Addresses as CSV (Excel-friendly)              |
 
 All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 (token bucket), and DB errors are never leaked to clients (logged server-side only).
+
+## Pre-RSVP mailing addresses
+
+The `/address` page lets guests submit their mailing address before invitations
+go out (they'll receive a Twilio SMS with a personal link like
+`https://your-host/address?g=<token>`; the token is stored silently with the
+submission so you can tell exactly who responded).
+
+**Generate the personal links** from a guest CSV with `name` and `phone`
+headers (`email` column optional):
+
+```bash
+SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
+# → writes guest_tokens.csv: name, phone, token, link
+```
+
+(`SITE_URL` may also live in `.env`.) Send each `link` to that guest via SMS.
+Unknown tokens are stored as-is — nobody has to keep the list in sync.
+
+**Pull the results** (cross-reference against `guest_tokens.csv`):
+
+```bash
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses      # JSON, matched/unmatched
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv  # spreadsheet
+```
+
+**Database:** fresh Neon databases can run `schema.sql` as before. Existing
+databases (already carrying `rsvps`/`song_requests`) should apply the
+incremental migration instead:
+
+```bash
+psql "$DATABASE_URL" -f migrations/001_add_addresses.sql
+```
 
 ## Where the couple edits things
 
@@ -97,8 +138,10 @@ src/components/   Divider, PhotoSlot
 src/styles/       global.css — the whole design system (tokens at the top)
 server/           Hono app: API, static serving, rate limiting, env, db
 shared/songs.js   dedupe/sort logic shared by browser + server
+scripts/          import_guests.mjs (guest tokens), run-e2e.mjs, shoot.mjs
 tests/unit/       Vitest unit tests
 tests/e2e/        Playwright specs (data-testid assertions)
 schema.sql        Neon Postgres tables
+migrations/       incremental schema changes for existing databases
 Dockerfile        multi-stage build (node:22-alpine → node:22-slim)
 ```

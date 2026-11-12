@@ -4,7 +4,7 @@
 import crypto from 'node:crypto'
 import { Hono } from 'hono'
 import { getDb } from './db.js'
-import { validateRsvp, validateSong } from './validate.js'
+import { validateAddress, validateRsvp, validateSong } from './validate.js'
 import { createRateLimiter } from './rate-limit.js'
 import { serve404, serveStaticFile } from './static.js'
 import { firstName } from '../shared/songs.js'
@@ -141,6 +141,36 @@ api.post('/song', async (c) => {
   }
 })
 
+api.post('/address', async (c) => {
+  const body = await jsonBody(c)
+  if (body === null || typeof body !== 'object') {
+    return c.json({ error: 'Expected a JSON request body.' }, 400)
+  }
+
+  const result = validateAddress(body)
+  if (!result.ok) {
+    return c.json({ error: 'Validation failed.', errors: result.errors }, 422)
+  }
+
+  const db = getDb()
+  if (!db) {
+    console.warn('[api] POST /api/address reached without DATABASE_URL — returning 503')
+    return c.json({ error: NOT_CONFIGURED_MESSAGE }, 503)
+  }
+
+  try {
+    const v = result.value
+    await db`
+      INSERT INTO addresses (full_name, street, unit, city, state, postal_code, country, notes, guest_token)
+      VALUES (${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, ${v.guest_token})
+    `
+    return c.json({ ok: true, message: "Sealed and delivered — you're on the list. 💌" }, 201)
+  } catch (err) {
+    console.error('[api] failed to insert address:', err) // server log only — never leaked
+    return c.json({ error: GENERIC_ERROR_MESSAGE }, 500)
+  }
+})
+
 api.get('/songs', async (c) => {
   const db = getDb()
   if (!db) {
@@ -230,6 +260,79 @@ api.get('/rsvps.csv', async (c) => {
     })
   } catch (err) {
     console.error('[api] failed to export RSVPs:', err)
+    return c.json({ error: GENERIC_ERROR_MESSAGE }, 500)
+  }
+})
+
+api.get('/addresses', async (c) => {
+  const denied = adminDenial(c)
+  if (denied) return c.json({ error: denied.message }, denied.status)
+
+  const db = getDb()
+  if (!db) {
+    console.warn('[api] GET /api/addresses reached without DATABASE_URL — returning 503')
+    return c.json({ error: 'The database is not configured yet.' }, 503)
+  }
+  try {
+    const rows = await db`
+      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
+      FROM addresses
+      ORDER BY created_at DESC
+    `
+    const normalize = (row) => ({
+      ...row,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    })
+    // Grouped for cross-referencing guest_tokens.csv: matched rows arrived via
+    // a personal SMS link, unmatched rows were typed manually.
+    const matched = rows.filter((row) => row.guest_token).map(normalize)
+    const unmatched = rows.filter((row) => !row.guest_token).map(normalize)
+    return c.json({ count: rows.length, matched, unmatched })
+  } catch (err) {
+    console.error('[api] failed to list addresses:', err)
+    return c.json({ error: GENERIC_ERROR_MESSAGE }, 500)
+  }
+})
+
+api.get('/addresses.csv', async (c) => {
+  const denied = adminDenial(c)
+  if (denied) return c.json({ error: denied.message }, denied.status)
+
+  const db = getDb()
+  if (!db) {
+    return c.json({ error: 'The database is not configured yet.' }, 503)
+  }
+  try {
+    const rows = await db`
+      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
+      FROM addresses
+      ORDER BY created_at DESC
+    `
+    const header =
+      'id,full_name,street,unit,city,state,postal_code,country,notes,guest_token,created_at'
+    const lines = rows.map((row) =>
+      [
+        row.id,
+        csvEscape(row.full_name),
+        csvEscape(row.street),
+        csvEscape(row.unit),
+        csvEscape(row.city),
+        csvEscape(row.state),
+        csvEscape(row.postal_code),
+        csvEscape(row.country),
+        csvEscape(row.notes),
+        csvEscape(row.guest_token),
+        csvEscape(row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at),
+      ].join(',')
+    )
+    // BOM so Excel opens UTF-8 happily.
+    const csv = '\uFEFF' + [header, ...lines].join('\r\n')
+    return c.body(csv, 200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="addresses.csv"',
+    })
+  } catch (err) {
+    console.error('[api] failed to export addresses:', err)
     return c.json({ error: GENERIC_ERROR_MESSAGE }, 500)
   }
 })
