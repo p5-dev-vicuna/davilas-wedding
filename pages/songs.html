@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f5f1e8" />
     <title>Song Requests · The Davilas</title>
     <meta
       name="description"
@@ -157,9 +161,7 @@
         </div>
 
         <section data-testid="songs-list-section" aria-label="Requests so far">
-          <h2 class="section-title" style="font-size: 1.3rem">
-            Requests so far
-          </h2>
+          <h2 class="section-title section-subtitle">Requests so far</h2>
           <p class="songs-summary" data-testid="songs-count"></p>
           <p class="songs-loading" data-testid="songs-loading">
             Loading requests…
@@ -220,6 +222,17 @@
           if (icon) icon.textContent = "☰";
         }),
       );
+
+      // Escape closes the mobile menu and hands focus back to the toggle.
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !header.classList.contains("open"))
+          return;
+        header.classList.remove("open");
+        toggle?.setAttribute("aria-expanded", "false");
+        const icon = toggle?.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = "☰";
+        toggle?.focus();
+      });
     </script>
 
     <!-- Form + live list logic lives in ./scripts/songs.js (bundled by Bun),

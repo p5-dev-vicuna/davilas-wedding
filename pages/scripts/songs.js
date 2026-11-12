@@ -147,7 +147,13 @@ form.addEventListener("submit", async (event) => {
     setError("name", "Name must be 120 characters or fewer.");
     valid = false;
   }
-  if (!valid) return;
+  if (!valid) {
+    const firstInvalid = /** @type {HTMLElement | null} */ (
+      form.querySelector('[aria-invalid="true"]')
+    );
+    firstInvalid?.focus();
+    return;
+  }
 
   if (submitBtn) {
     submitBtn.disabled = true;

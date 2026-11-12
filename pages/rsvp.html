@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f5f1e8" />
     <title>RSVP · The Davilas</title>
     <meta
       name="description"
@@ -151,6 +155,7 @@
               id="rsvp-party"
               name="party_size"
               type="number"
+              inputmode="numeric"
               min="1"
               max="10"
               step="1"
@@ -283,6 +288,17 @@
           if (icon) icon.textContent = "☰";
         }),
       );
+
+      // Escape closes the mobile menu and hands focus back to the toggle.
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" || !header.classList.contains("open"))
+          return;
+        header.classList.remove("open");
+        toggle?.setAttribute("aria-expanded", "false");
+        const icon = toggle?.querySelector(".nav-toggle-icon");
+        if (icon) icon.textContent = "☰";
+        toggle?.focus();
+      });
     </script>
 
     <script>
@@ -316,9 +332,10 @@
         if (!el) return;
         el.textContent = message;
         el.hidden = !message;
-        const input = document.getElementById(
-          `rsvp-${errorMap[field] ?? field}`,
-        );
+        // Fieldset controls (radio rows) have no element id — fall back to name.
+        const input =
+          document.getElementById(`rsvp-${errorMap[field] ?? field}`) ??
+          form.querySelector(`[name="${field}"]`);
         if (input) {
           if (message) input.setAttribute("aria-invalid", "true");
           else input.removeAttribute("aria-invalid");
@@ -391,7 +408,12 @@
           setError("notes", "Please keep notes under 1000 characters.");
           valid = false;
         }
-        if (!valid) return;
+        if (!valid) {
+          // Move focus to the first invalid field so keyboard and screen-reader
+          // users (and thumbs) land on the problem, not the bottom of the page.
+          form.querySelector('[aria-invalid="true"]')?.focus();
+          return;
+        }
 
         if (submitBtn) {
           submitBtn.disabled = true;
