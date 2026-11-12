@@ -321,8 +321,12 @@ server/index.js --outdir dist`). No `build:client` step exists on this branch
   global.css, future gallery/wedding-party photos). `node_modules` is
   deliberately NOT copied: zero runtime deps, and the bundle contains no bare
   import specifiers (verified by grep over `dist/index.js`).
-- **entry** — `WORKDIR /app/dist` + `CMD ["bun", "index.js"]`, mirroring the
-  verified `start` script (`cd dist && bun index.js`). This is load-bearing:
+- **entry** — `WORKDIR /app/dist` + `CMD ["index.js"]`, mirroring the
+  verified `start` script (`cd dist && bun index.js`): the distroless image's
+  ENTRYPOINT is the bun binary itself (`/usr/local/bin/bun`), so CMD must be
+  the script path alone — the original `CMD ["bun", "index.js"]` ran
+  `bun bun index.js`, printing the bundle to stdout and exiting 0 (container
+  crash-loops, Restarting (0); fixed 2026-11-11). This is load-bearing:
   Bun resolves the built asset manifest relative to the process CWD — running
   `bun dist/index.js` from the repo root crashes at startup with
   `TypeError: Bundled file "./index-0eg60hwh.js" not found` (reproduced while

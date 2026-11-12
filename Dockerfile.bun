@@ -49,4 +49,7 @@ COPY --from=build /app/public ./public
 # entry must run from inside dist/ — same as `bun run start`.
 WORKDIR /app/dist
 EXPOSE 3000
-CMD ["bun", "index.js"]
+# distroless ENTRYPOINT is the bun binary itself, so CMD is the script path
+# only — ["bun", "index.js"] runs `bun bun index.js`, which prints the bundle
+# to stdout and exits 0 (container crash-loops, Restarting (0)).
+CMD ["index.js"]

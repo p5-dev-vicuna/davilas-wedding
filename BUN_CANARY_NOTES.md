@@ -83,6 +83,10 @@ Bun.serve({
 
 - `bun:test` runner: `import { describe, test, expect } from "bun:test"`; API is Jest/Vitest-compatible for the common surface (`describe`, `test`/`it`, `expect`, `toBe`, `toEqual`, `toHaveBeenCalled` with `mock()`). `bun test` runs all `*.test.*` files.
 
+## Docker — oven/bun:canary-distroless
+
+- distroless ENTRYPOINT = bun binary (`/usr/local/bin/bun` — no docker-entrypoint.sh like canary/canary-slim); CMD must be `["index.js"]`, not `["bun", "index.js"]`. The latter runs `bun bun index.js`, which prints the bundle to stdout and exits 0 → container crash-loops (Restarting (0)). Proven on the Coolify host 2026-11-11; the slim image's docker-entrypoint.sh translates either form, which is why the pre-distroless main app kept working.
+
 ## Environment gotchas (Windows, this box)
 
 - git-bash `PATH` may not include `.bun/bin` — always export it or use the absolute path (see top).
