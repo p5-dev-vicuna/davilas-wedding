@@ -280,6 +280,7 @@ a:hover {
 .btn {
   display: inline-block;
   padding: 0.72rem 1.7rem;
+  min-height: 44px;
   background: var(--forest);
   color: var(--cream);
   border: 1px solid var(--forest);
@@ -865,10 +866,23 @@ label {
   margin-bottom: 0.45rem;
 }
 
+.field-hint {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--sage);
+  margin: -0.15rem 0 0.5rem;
+}
+
+.field .field-hint + input,
+.field .field-hint + textarea {
+  margin-top: 0.1rem;
+}
+
 input[type='text'],
 input[type='number'],
 textarea {
   width: 100%;
+  min-height: 44px; /* comfortable touch target */
   font-family: var(--font-body);
   font-size: 1.05rem;
   color: var(--ink);
@@ -931,6 +945,26 @@ textarea {
   background: rgba(138, 59, 46, 0.06);
   padding: 0.8rem 1rem;
   margin-bottom: 1.2rem;
+}
+
+/* ----- Address form extras ----- */
+.script-accent {
+  font-size: clamp(1.5rem, 4vw, 1.9rem);
+  margin-bottom: 0.2rem;
+}
+
+.address-city-row {
+  display: grid;
+  /* Single column on phones — no horizontal overflow, ever. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .address-city-row {
+    /* minmax(0, …) lets tracks shrink below their content width. */
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 1.2rem;
+  }
 }
 
 .form-actions {
