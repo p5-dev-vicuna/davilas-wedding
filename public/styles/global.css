@@ -1566,26 +1566,37 @@ textarea {
   margin-bottom: 0.6rem;
 }
 
-/* ----- Stained glass: John Scott Bradstreet window, 1906-08 -----
-   Photo crops of a real window in The Met's collection (public domain / CC0), with the
-   green leaf glass shifted to fall amber/rust:
-   https://www.metmuseum.org/art/collection/search/20531
-   Pieces in public/glass/: leaf canopy (top); a repeating section of the window's own
-   canopy band + one trunk pane, twice, the second band shifted deeper rust (middle);
-   roots (bottom); and one panel's canopy for the phone transom (tiles sideways).
-   Wide screens: a page-height leaded window in each side gutter, part of the page (scrolls
-   with it, never under the header or footer); the home hero is inset between them.
-   Phones/tablets (most guests): a slim oak bar under the header and a band of leaf panes
-   resting on the footer, each in its own row.
-   To remove the whole feature: delete this section and public/glass/. */
+/* ----- Glass-wash flanks + ornament footer band (D2 / M2) -----
+   Replaces the retired photo crops of the Bradstreet stained-glass window
+   (public/glass/, deleted with that look): no oak frames, no black leading,
+   no photo crops — the owner rejected those after a live review.
+   D2 · ≥1440px: quiet glass-wash columns in the side gutters — pure CSS,
+   translucent angled panes in sage/olive/gold/amber that bleed into one
+   another and melt into the cream page.
+   M2 · <1440px: the site's ornament divider language enlarged — a deep-sage
+   band over the footer with the gold ❦ and a rule to each side; the slim
+   bar under the header stays.
+   RETINT: the owner plans to retint the panes later — edit ONLY the --glass-*
+   values in the :root just below; everything else follows them.
+   To remove the whole feature: delete this section. */
 :root {
-  --oak: #8a5d33;
-  --clear-glass: #ece9e3;
+  /* D2 pane tones — low-saturation, translucent (alpha ≤ .4) over cream.
+     Distinct from the hero's --wash-* watercolors but in the same key. */
+  --glass-sage: rgba(90, 97, 82, 0.34); /* --sage */
+  --glass-olive: rgba(110, 123, 96, 0.3); /* sage eased toward --wash-2 */
+  --glass-gold: rgba(168, 153, 104, 0.3); /* --gold */
+  --glass-amber: rgba(176, 141, 79, 0.3); /* the warm gold of the hero frame */
+  /* held in reserve for the owner's retint — deliberately unused: the
+     orange/rust lean was part of what he disliked about the old panels */
+  --glass-rust: rgba(138, 59, 46, 0.24);
+
+  --oak: #8a5d33; /* the slim header bar on small screens */
+  --sage-deep: var(--wash-1); /* the M2 footer band */
 }
 
 @media (min-width: 1440px) {
   :root {
-    --win-w: min(150px, calc((100vw - 1180px) / 2 - 40px));
+    --flank-w: min(160px, calc((100vw - 1180px) / 2 - 40px));
   }
 
   main {
@@ -1598,20 +1609,23 @@ textarea {
     position: absolute;
     top: 16px;
     bottom: 24px;
-    width: calc(var(--win-w) + 14px);
-    border: 7px solid var(--oak);
-    outline: 1px solid var(--gold);
-    outline-offset: -4px;
-    /* canopy and roots sit in the padding; the trunk fills the content box in whole panes */
-    padding-top: calc(var(--win-w) * 2.3433);
-    padding-bottom: calc(var(--win-w) * 1.0933);
+    width: var(--flank-w);
+    /* Panes stack down the column; the 166° axis leans every boundary like
+       canted leaded glass without any leading. Neighbouring stops gap on
+       purpose so tones bleed across each joint, and the blur melts the
+       column's edges into the cream page. */
     background:
-      url('../glass/bradstreet-top.webp') top / 100% auto no-repeat,
-      url('../glass/bradstreet-roots.webp') bottom / 100% auto no-repeat,
-      url('../glass/bradstreet-trunk.webp') top / 100% auto no-repeat round,
-      var(--clear-glass);
-    background-origin: padding-box, padding-box, content-box, padding-box;
-    background-clip: padding-box, padding-box, content-box, padding-box;
+      linear-gradient(166deg,
+        var(--glass-sage) 0% 10%,
+        var(--glass-olive) 18% 28%,
+        var(--glass-gold) 36% 44%,
+        var(--glass-sage) 52% 62%,
+        var(--glass-amber) 70% 79%,
+        var(--glass-olive) 87% 100%),
+      radial-gradient(130% 34% at 28% 5%, var(--glass-sage), transparent 72%),
+      radial-gradient(120% 32% at 72% 96%, var(--glass-amber), transparent 74%),
+      linear-gradient(180deg, rgba(236, 230, 214, 0.12), rgba(90, 97, 82, 0.1));
+    filter: blur(9px) saturate(0.96);
     pointer-events: none;
   }
 
@@ -1619,21 +1633,21 @@ textarea {
     left: 20px;
   }
 
-  /* mirrored, like the original window's right-hand panel */
+  /* mirrored, so the pane rhythm reflects across the page */
   main::after {
     right: 20px;
     transform: scaleX(-1);
   }
 
-  /* too short for a full window (the 404 page) */
+  /* too short for the washes (the 404 page) */
   main:has(.lost)::before,
   main:has(.lost)::after {
     display: none;
   }
 
-  /* full-width hero sits between the windows instead of under them */
+  /* full-width hero sits between the washes instead of under them */
   .hero {
-    margin-inline: calc(var(--win-w) + 54px);
+    margin-inline: calc(var(--flank-w) + 54px);
   }
 }
 
@@ -1645,26 +1659,34 @@ textarea {
     pointer-events: none;
   }
 
-  /* slim oak bar with a gold line, like the window's frame; scrolls away */
+  /* slim oak bar with a gold line; scrolls away */
   main::before {
     height: 7px;
     background: var(--oak);
     border-bottom: 1px solid var(--gold);
   }
 
-  /* transom: a row of leaf-canopy panes framed in oak */
+  /* M2: the ornament divider enlarged on a deep-sage band above the footer.
+     The ❦ rides in the pseudo's own content box; the two 120px gold rules
+     are background layers placed a glyph's width to either side, fading the
+     same way .divider-rule does — gold at the glyph, out at the ends. */
   main::after {
+    content: '❦';
     margin-top: 2.4rem;
-    height: clamp(76px, 20vw, 112px);
-    border-top: 5px solid var(--oak);
-    border-bottom: 4px solid var(--oak);
+    height: clamp(96px, 22vw, 110px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-on-forest);
+    font-size: 1.7rem;
+    line-height: 1;
     background:
-      linear-gradient(var(--gold), var(--gold)) top / 100% 1px no-repeat,
-      url('../glass/bradstreet-transom.webp') center / auto 100% repeat-x,
-      var(--clear-glass);
+      linear-gradient(90deg, transparent, var(--gold)) right calc(50% + 30px) center / 120px 1px no-repeat,
+      linear-gradient(90deg, var(--gold), transparent) left calc(50% + 30px) center / 120px 1px no-repeat,
+      var(--sage-deep);
   }
 
-  /* the transom now provides the gap above the footer */
+  /* the band now provides the gap above the footer */
   .site-footer {
     margin-top: 0;
   }
