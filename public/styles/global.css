@@ -565,8 +565,11 @@ main p {
 
 @media (min-width: 900px) {
   .hero {
-    grid-template-columns: 1.05fr 1fr;
-    min-height: 86vh;
+    /* the landscape photo needs a wider panel than the text card */
+    grid-template-columns: 1.5fr 1fr;
+    /* content-driven height: the 3:2 photo and the card settle the row, so
+       the sage mat stays slim instead of stretching to the viewport */
+    min-height: auto;
   }
 }
 
@@ -574,15 +577,26 @@ main p {
   position: relative;
   background: var(--sage);
   padding: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46vh;
+  display: grid;
+  align-content: center; /* centers the photo when the panel out-talls it */
+  min-height: 40vh;
+}
+
+/* Phones: slimmer sage mat so the landscape photo keeps its presence. */
+@media (max-width: 640px) {
+  .hero-sage {
+    padding: 1.25rem;
+  }
+}
+
+/* Photo and script share ONE grid cell: the row sizes to the photo, so the
+   script always rides the photo's bottom edge however tall the panel is. */
+.hero-sage > * {
+  grid-area: 1 / 1;
 }
 
 .hero-sage .photo-slot {
-  width: min(440px, 100%);
-  aspect-ratio: 4 / 5;
+  width: 100%; /* fills the sage mat; aspect-ratio (3/2) is set inline */
   border-color: rgba(245, 241, 232, 0.55);
   background:
     linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(46, 64, 56, 0.2)),
@@ -590,24 +604,43 @@ main p {
   color: var(--white); /* label text: 5.0:1 on the sage glass gradient */
 }
 
-.hero-script {
+/* forest scrim over the photo's foot — keeps the script overlay legible
+   (the couple's heads sit ~62-69% up the frame; the scrim fades out below
+   them and only touches bodies/steps) */
+.hero-photo::after {
+  content: '';
   position: absolute;
-  bottom: 1.6rem;
-  left: 0;
-  right: 0;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(46, 64, 56, 0.58),
+    rgba(46, 64, 56, 0.42) 22%,
+    rgba(46, 64, 56, 0) 34%
+  );
+  pointer-events: none;
+}
+
+.hero-script {
+  position: relative; /* paints above the absolutely-positioned photo */
+  z-index: 1;
+  align-self: end;
   text-align: center;
   font-family: var(--font-script);
   font-size: clamp(2.6rem, 6vw, 4.2rem);
+  line-height: 1.1; /* tight box: the glyphs sit low, inside the scrim */
   color: var(--cream);
-  text-shadow: 0 2px 18px rgba(46, 64, 56, 0.45);
+  text-shadow:
+    0 2px 18px rgba(46, 64, 56, 0.55),
+    0 1px 3px rgba(46, 64, 56, 0.5);
   pointer-events: none;
+  padding-bottom: 0.25rem;
 }
 
 .hero-cream {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+  padding: clamp(2.5rem, 5vw, 3.5rem) 1.5rem;
 }
 
 .hero-card {
