@@ -17,6 +17,8 @@
   --gold-soft: rgba(168, 153, 104, 0.5);
   --gold-faint: rgba(168, 153, 104, 0.18);
   --gold-on-forest: #cdbf94; /* brightened gold: 6.0:1 on forest (plain gold is 3.9:1) */
+  --wash-1: #55624d; /* W2 watercolor washes — deep sage, tone-on-tone with the panel */
+  --wash-2: #6e7b60; /* W2 watercolor washes — lighter sage */
   --white: #fdfcf8;
   --rust: #8a3b2e; /* error accents — dark enough to read on cream */
 
@@ -575,6 +577,7 @@ main p {
 
 .hero-sage {
   position: relative;
+  overflow: hidden; /* W2: corner washes clip here, so their edges melt out */
   background: var(--sage);
   padding: 2.5rem;
   display: grid;
@@ -595,9 +598,48 @@ main p {
   grid-area: 1 / 1;
 }
 
+/* ----- W2: watercolor corner washes (sage panel) -----
+   One decorative SVG stretched over the sage panel's padding box. The
+   grid-area reset keeps it out of the photo's shared cell (an absolutely
+   positioned grid child with a grid-area would size to that cell instead
+   of the panel). preserveAspectRatio="slice" + the corner blooms keep the
+   washes in the panel's own corners on both the side-by-side and stacked
+   layouts; .hero-sage's overflow:hidden feathers them out at the edges. */
+.hero-washes {
+  position: absolute;
+  inset: 0;
+  grid-area: auto;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* fills are set on the outer <use> blooms (light DOM) and INHERIT into the
+   <use> shadow clones — selectors can't reach clone content, but inherited
+   properties like fill do */
+.hero-washes .wash-a {
+  fill: var(--wash-1);
+}
+
+.hero-washes .wash-b {
+  fill: var(--wash-2);
+}
+
+/* feathered watercolor edges: every leaf layer is softly blurred */
+.hero-washes use,
+.hero-washes path {
+  filter: blur(1.6px) saturate(0.9);
+}
+
 .hero-sage .photo-slot {
   width: 100%; /* fills the sage mat; aspect-ratio (3/2) is set inline */
-  border-color: rgba(245, 241, 232, 0.55);
+  /* W2: rounded corners + thin gold frame + a soft gold halo that melts
+     into the sage (overflow:hidden above clips the photo to the radius) */
+  border: 1px solid rgba(176, 141, 79, 0.85);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 6px rgba(176, 141, 79, 0.16),
+    0 0 22px rgba(176, 141, 79, 0.22);
   background:
     linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(46, 64, 56, 0.2)),
     repeating-linear-gradient(-45deg, rgba(245, 241, 232, 0.05) 0 2px, transparent 2px 10px);
