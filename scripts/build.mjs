@@ -54,6 +54,11 @@ const PAGES = path.join(ROOT, "pages");
 // reserved by RFC 2606, so it can never collide with a real URL.
 const MARKER = "https://the-davilas-public.invalid";
 
+// Injected verbatim at the very top of dist/index.js — before the inlined
+// module bodies and long before createApp() — so the embedded HTML manifests
+// always resolve against dist/ (see "Cwd note" below).
+const BANNER = "process.chdir(import.meta.dir);";
+
 // Root-absolute URLs with a file extension, in attributes the HTML bundler
 // resolves (src/srcset/href). Extensionless URLs (href="/gallery" — app
 // routes) and data-* attributes (the lightbox's data-full) are left alone;
@@ -77,7 +82,7 @@ const config = {
   // Injected verbatim at the very top of dist/index.js — before the
   // inlined module bodies and long before createApp() — so the embedded
   // HTML manifests always resolve against dist/ (see "Cwd note" above).
-  banner: "process.chdir(import.meta.dir);",
+  banner: BANNER,
   // entry flat at dist/index.js (the runtime starts `cd dist && bun
   // index.js`); chunks/assets keep the default content-hashed names —
   // together, byte-for-byte the layout the old CLI command produced.
@@ -144,6 +149,27 @@ for (const file of await collectTextFiles(DIST)) {
   await Bun.write(file, fixed);
 }
 
+/* -------------------- strip the cwd banner from browser chunks ----------
+   The banner exists ONLY for the server entry (cwd pinning, see above), but
+   Bun.build injects `banner` into EVERY JS output — including the
+   browser-side page chunks (dist/index-<hash>.js and friends). In a browser
+   `process` is not defined, so the line throws
+   `ReferenceError: process is not defined` on every page load. Strip it
+   from everything except the one file it was meant for. */
+const SERVER_ENTRY = path.join(DIST, "index.js");
+let stripped = 0;
+const bannerLeaks = [];
+for (const file of await collectTextFiles(DIST)) {
+  if (path.resolve(file) === path.resolve(SERVER_ENTRY)) continue;
+  const text = await Bun.file(file).text();
+  if (text.startsWith(BANNER)) {
+    await Bun.write(file, text.slice(BANNER.length).replace(/^(?:\r?\n)+/, ""));
+    stripped += 1;
+  } else if (text.includes(BANNER)) {
+    bannerLeaks.push(path.relative(DIST, file));
+  }
+}
+
 // The build is only healthy if the marker is fully gone and the public
 // URLs made it through verbatim — fail loudly instead of shipping a
 // silently broken page (e.g. if a future Bun changes how absolute
@@ -171,6 +197,10 @@ const checks = [
     "dist/index.js lost the cwd-pinning banner — the bundle would only " +
       "boot with the caller's cwd already inside dist/",
   ],
+  [
+    bannerLeaks.length === 0,
+    "cwd banner leaked into browser chunks: " + bannerLeaks.join(", "),
+  ],
 ];
 const failed = checks.filter(([ok]) => !ok).map(([, why]) => why);
 if (failed.length > 0) {
@@ -180,5 +210,6 @@ if (failed.length > 0) {
 
 console.log(
   `[build] bundled ${result.outputs.length} outputs → dist/ ` +
-    `(public asset URLs kept verbatim: ${restored} restored)`,
+    `(public asset URLs kept verbatim: ${restored} restored; ` +
+    `cwd banner stripped from ${stripped} browser chunk(s))`,
 );
