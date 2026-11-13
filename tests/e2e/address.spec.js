@@ -110,12 +110,14 @@ test.describe('Mailing address', () => {
     expect(data.matched[0].full_name).toBe('Fernanda & Alex Davila')
   })
 
-  test('cross-links: footer links to Addresses, RSVP and address pages link to each other', async ({
+  test('cross-links: unlisted pages stay directly reachable and cross-linked', async ({
     page,
   }) => {
+    // Unlisted: the home page no longer links out to /address…
     await page.goto('/')
-    await expect(page.getByTestId('footer-address-link')).toHaveAttribute('href', '/address')
+    await expect(page.getByTestId('footer-address-link')).toHaveCount(0)
 
+    // …but RSVP ↔ address still link to each other on their own pages.
     await page.goto('/rsvp')
     await expect(page.getByTestId('rsvp-address-link')).toHaveAttribute('href', '/address')
 
