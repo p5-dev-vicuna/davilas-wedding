@@ -20,3 +20,8 @@ playwright/.cache/
 .DS_Store
 Thumbs.db
 screenshots/
+
+# guest data - phone numbers / personal links, never commit
+# (this repo is PUBLIC)
+guests*.csv
+guest_tokens*.csv
