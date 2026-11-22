@@ -2,6 +2,7 @@
 // bundler), API endpoints, and a fetch fallback for public/ assets + the
 // styled 404. createApp() is exported separately from index.js so unit tests
 // can boot the whole server on an ephemeral port and drive it with real HTTP.
+import path from "node:path";
 import crypto from "node:crypto";
 import indexPage from "../pages/index.html";
 import aboutPage from "../pages/about.html";
@@ -22,6 +23,7 @@ import { validateAddress, validateRsvp, validateSong } from "./validate.js";
 import { createRateLimiter } from "./rate-limit.js";
 import { serve404, servePublicFile } from "./static.js";
 import { firstName } from "../shared/songs.js";
+import { restoreAssetUrls } from "../scripts/asset-url-mask.mjs";
 
 /* ---------------------------- rate limiting ---------------------------- */
 // In-memory token bucket: 60 requests/minute/IP burst — plenty for guests,
@@ -487,26 +489,76 @@ async function getAddressesCsv(req, server) {
   }
 }
 
+/* ----------------------------- HTML page routes -------------------------- */
+// The same `import x from "../pages/x.html"` means two different things:
+//
+//   production (dist/): the build inlines a prebuilt asset manifest
+//     ({ index: "./index.html", files: [...] }) and Bun.serve serves it
+//     with zero runtime bundling — this is the path that ships.
+//
+//   dev/test (running from source): the import yields a lazy placeholder
+//     that Bun.serve re-bundles on request — and on this canary that lazy
+//     bundling dies on the pages' root-absolute asset URLs:
+//       error: Could not resolve: "/hero.webp"
+//     exactly what scripts/build.mjs masks at build time. Runtime plugins
+//     cannot intercept it (verified on bun 1.4.4-canary: a Bun.plugin
+//     onLoad fires for the import itself, but the per-request re-bundle
+//     re-reads the file from disk and never consults it), so from source
+//     the page markup is served directly instead: read the exact file the
+//     import points at, apply the shared restore pass (the same public-URL
+//     contract the production build guarantees — no marker URLs can ever
+//     reach a browser), and rewrite "../public/x" to the "/x" runtime URL
+//     it denotes — public/ is already served whole by server/static.js,
+//     so styles, favicon, and photos all resolve.
+//
+// Production is untouched: the manifest check below hands Bun.serve the
+// prebuilt bundle exactly as before.
+
+const PAGES_DIR = path.join(import.meta.dir, "..", "pages");
+
+/**
+ * Route value for one page import: the prebuilt manifest when running from
+ * dist/, else a GET handler serving the page source with public URLs kept
+ * verbatim (mask/restore parity with the production build).
+ */
+function pageRoute(page, file) {
+  // Prebuilt manifests carry their file list; source-mode placeholders
+  // don't (they only expose an `index` source path on their prototype).
+  if (Array.isArray(page?.files)) return page;
+  return {
+    GET: async () => {
+      const html = restoreAssetUrls(
+        await Bun.file(path.join(PAGES_DIR, file)).text(),
+      );
+      const markup = html.replaceAll('="../public/', '="/');
+      return new Response(markup, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    },
+  };
+}
+
 /* ------------------------------ route table ----------------------------- */
 
 export function createRoutes() {
   return {
     // Pages — HTML imports; Bun bundles them (dev/HMR on demand, pre-built
-    // manifest in production).
-    "/": indexPage,
-    "/about": aboutPage,
-    "/rsvp": rsvpPage,
-    "/address": addressPage,
-    "/schedule": schedulePage,
-    "/travel": travelPage,
-    "/details": detailsPage,
-    "/wedding-party": weddingPartyPage,
-    "/gallery": galleryPage,
-    "/faq": faqPage,
-    "/registry": registryPage,
-    "/songs": songsPage,
-    "/privacy": privacyPage,
-    "/terms": termsPage,
+    // manifest in production; straight from source when unbundled — see
+    // pageRoute above).
+    "/": pageRoute(indexPage, "index.html"),
+    "/about": pageRoute(aboutPage, "about.html"),
+    "/rsvp": pageRoute(rsvpPage, "rsvp.html"),
+    "/address": pageRoute(addressPage, "address.html"),
+    "/schedule": pageRoute(schedulePage, "schedule.html"),
+    "/travel": pageRoute(travelPage, "travel.html"),
+    "/details": pageRoute(detailsPage, "details.html"),
+    "/wedding-party": pageRoute(weddingPartyPage, "wedding-party.html"),
+    "/gallery": pageRoute(galleryPage, "gallery.html"),
+    "/faq": pageRoute(faqPage, "faq.html"),
+    "/registry": pageRoute(registryPage, "registry.html"),
+    "/songs": pageRoute(songsPage, "songs.html"),
+    "/privacy": pageRoute(privacyPage, "privacy.html"),
+    "/terms": pageRoute(termsPage, "terms.html"),
     // API — HTTP method handlers inline.
     "/api/rsvp": { POST: postRsvp },
     "/api/song": { POST: postSong },

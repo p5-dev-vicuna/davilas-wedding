@@ -150,6 +150,12 @@ describe("static serving", () => {
     const home = await fetch(base + "/");
     expect(home.status).toBe(200);
     expect(home.headers.get("content-type")).toMatch(/text\/html/);
+    // Parity with the production build (see scripts/asset-url-mask.mjs):
+    // root-absolute asset URLs must come through verbatim — never masked,
+    // never rewritten.
+    const markup = await home.text();
+    expect(markup).toContain('src="/hero.webp"');
+    expect(markup).not.toContain(".invalid");
 
     const about = await fetch(base + "/about");
     expect(about.status).toBe(200);
