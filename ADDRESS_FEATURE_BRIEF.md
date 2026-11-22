@@ -34,7 +34,7 @@ Work on branch `addresses` (already checked out). Commit there, PUSH the branch 
 
 ## Guest tokens (build the machinery; the list arrives later)
 
-- `scripts/import_guests.mjs` — reads a CSV (headers: name, phone; email optional) via `node scripts/import_guests.mjs guests.csv`, generates a random 8-char token per row, writes `guest_tokens.csv` (name, phone, token, link) where link = `<SITE_URL>/address?g=<token>`. Reads SITE_URL from env. Doc in README.
+- `scripts/import_guests.mjs` — reads a names-only list (CSV with a `name` header — a `phone` column is optional and ignored — or a plain text file with one name per line; auto-detected) via `node scripts/import_guests.mjs guests.csv`, generates a random 8-char token per row, writes `guest_tokens.csv` (name, token, link) where link = `<SITE_URL>/address?g=<token>`. Reads SITE_URL from env. Doc in README.
 - Admin `GET /api/addresses` response groups: `matched` (had a token) and `unmatched` (typed manually), plus a `not_yet_responded` count isn't possible without phone numbers client-side — skip; the CSV + guest_tokens.csv let the couple cross-reference.
 - `?g=<token>` unknown tokens are fine — store as-is.
 

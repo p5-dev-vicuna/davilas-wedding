@@ -118,19 +118,22 @@ rejects their submissions with 403. Valid tokens live in the `guest_tokens`
 table (`GET /api/address/validate` checks it) and are stored with the
 submission so you can tell exactly who responded.
 
-**Generate the personal links** from a guest CSV with `name` and `phone`
-headers (`email` column optional):
+**Generate the personal links** from a names-only list — either a CSV with a
+`name` header (a `phone` column is optional and ignored — Twilio legacy) or a
+plain text file with one name per line (no header). The format is
+auto-detected:
 
 ```bash
 SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
-# → writes guest_tokens.csv: name, phone, token, link (CSV only)
+# → writes guest_tokens.csv: name, token, link (CSV only)
 
 SITE_URL=https://your-host node scripts/import_guests.mjs --sync guests.csv
 # → same CSV, plus inserts every token into guest_tokens (needs DATABASE_URL;
 #   prints the synced count — only synced tokens are accepted by /address)
 ```
 
-(`SITE_URL` may also live in `.env`.) Send each `link` to that guest via SMS.
+(`SITE_URL` may also live in `.env`.) Text each `link` to that guest from your
+own phone.
 
 **Pull the results** (cross-reference against `guest_tokens.csv`):
 

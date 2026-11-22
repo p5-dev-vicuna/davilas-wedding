@@ -1,21 +1,29 @@
 #!/usr/bin/env node
 // Guest-list import for the pre-RSVP mailing-address capture.
 //
-// Reads a CSV of guests (headers: name, phone; email column optional):
+// Reads a names-only list of guests — either format, auto-detected from the
+// first line (treated as a CSV header when it contains a comma or equals
+// "name"):
+//   1. CSV with a `name` header — a `phone` column is optional and ignored
+//      (Twilio legacy: guests are texted manually from the couple's own
+//      phones); any other column is ignored too
+//   2. plain text — one name per line, no header
 //   node scripts/import_guests.mjs guests.csv
-// Generates a random 8-character personal token per row and writes
-// guest_tokens.csv (name, phone, token, link) where
+//   node scripts/import_guests.mjs guests.txt
+// Generates a random 8-character personal token per name and writes
+// guest_tokens.csv (name, token, link) where
 //   link = <SITE_URL>/address?g=<token>
 //
 // With --sync, each token is also INSERTed into the guest_tokens table in
 // Neon (DATABASE_URL from env/.env) so /address accepts the link:
-//   node scripts/import_guests.mjs --sync guests.csv
+//   node scripts/import_guests.mjs --sync guests.txt
 // Without the flag the run stays CSV-only (generate first, sync later).
 //
 // SITE_URL comes from the environment (or .env — the same loader the server
-// uses). Send each guest their link via Twilio SMS; when they submit their
-// address the token is stored invisibly, so guest_tokens.csv cross-references
-// exactly who has responded (see GET /api/addresses "matched" group).
+// uses). Text each guest their link from your own phone; when they submit
+// their address the token is stored invisibly, so guest_tokens.csv
+// cross-references exactly who has responded (see GET /api/addresses
+// "matched" group).
 //
 // The CSV parser below handles quoted fields containing commas/quotes (the
 // typical spreadsheet export); newlines inside quoted fields are not supported
@@ -93,8 +101,9 @@ const sync = argList.includes("--sync");
 const inputPath = argList.find((arg) => !arg.startsWith("--"));
 if (!inputPath) {
   fail(
-    "usage: node scripts/import_guests.mjs <guests.csv> [--sync]  " +
-      "(headers: name, phone; email optional; --sync also inserts tokens into guest_tokens)",
+    "usage: node scripts/import_guests.mjs <names.csv|names.txt> [--sync]  " +
+      "(names-only: CSV with a name header (phone column optional, ignored) or " +
+      "one name per line; --sync also inserts tokens into guest_tokens)",
   );
 }
 
@@ -113,37 +122,45 @@ if (!siteUrl) {
 }
 
 const lines = raw.split(/\r?\n/).filter((line) => line.trim() !== "");
-if (lines.length < 2)
-  fail("the CSV needs a header row (name, phone) and at least one guest.");
+if (lines.length === 0) fail("no guest names found — the input file is empty.");
 
-const header = splitCsvLine(lines[0]).map((column) => column.toLowerCase());
-const nameIndex = header.indexOf("name");
-const phoneIndex = header.indexOf("phone");
-if (nameIndex === -1 || phoneIndex === -1) {
-  fail(
-    `missing required column(s) — found [${header.join(", ")}], need "name" and "phone".`,
-  );
+// Auto-detect the format: a CSV's first line is a header row, so it either
+// has columns (a comma) or is the bare single-column header "name". Anything
+// else is a plain text list — one name per line, no header.
+const firstLine = lines[0].trim();
+const isCsv = firstLine.includes(",") || firstLine.toLowerCase() === "name";
+
+/** @type {string[]} */
+let names;
+if (isCsv) {
+  if (lines.length < 2)
+    fail('the CSV needs a "name" header row and at least one guest.');
+  const header = splitCsvLine(lines[0]).map((column) => column.toLowerCase());
+  const nameIndex = header.indexOf("name");
+  if (nameIndex === -1) {
+    fail(
+      `missing required column — found [${header.join(", ")}], need "name" ` +
+        '(a "phone" column is optional and ignored — Twilio legacy).',
+    );
+  }
+  names = lines.slice(1).map((line) => splitCsvLine(line)[nameIndex] ?? "");
+} else {
+  names = lines.map((line) => line.trim());
 }
 
 const seenTokens = new Set();
 const rows = [];
 let skipped = 0;
 
-for (const line of lines.slice(1)) {
-  const columns = splitCsvLine(line);
-  const name = columns[nameIndex] ?? "";
-  const phone = columns[phoneIndex] ?? "";
-  if (!name && !phone) {
+for (const name of names) {
+  if (!name) {
     skipped++;
     continue;
-  }
-  if (!name) {
-    fail(`row has a phone but no name: "${phone}" — every guest needs a name.`);
   }
   let token = makeToken();
   while (seenTokens.has(token)) token = makeToken(); // 40 bits — collisions ~never
   seenTokens.add(token);
-  rows.push({ name, phone, token, link: `${siteUrl}/address?g=${token}` });
+  rows.push({ name, token, link: `${siteUrl}/address?g=${token}` });
 }
 
 if (skipped > 0)
@@ -151,11 +168,9 @@ if (skipped > 0)
 
 const outputPath = path.join(process.cwd(), "guest_tokens.csv");
 const csv =
-  "name,phone,token,link\r\n" +
+  "name,token,link\r\n" +
   rows
-    .map((row) =>
-      [row.name, row.phone, row.token, row.link].map(csvEscape).join(","),
-    )
+    .map((row) => [row.name, row.token, row.link].map(csvEscape).join(","))
     .join("\r\n");
 
 writeFileSync(outputPath, "\uFEFF" + csv); // BOM so Excel opens UTF-8 happily
@@ -195,8 +210,9 @@ if (sync) {
 }
 
 console.log(
-  "[import_guests] next: send each link via Twilio SMS, then track responses at",
+  "[import_guests] next: text each link to its guest from your own phone,",
 );
 console.log(
-  "[import_guests]   GET /api/addresses (matched vs unmatched) or /api/addresses.csv",
+  "[import_guests]   then track responses at GET /api/addresses (matched vs",
 );
+console.log("[import_guests]   unmatched) or /api/addresses.csv");

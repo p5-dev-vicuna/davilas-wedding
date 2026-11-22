@@ -72,22 +72,24 @@ accepted as-is; empty `country` defaults to `'USA'`).
 
 ### Guest tokens (`scripts/import_guests.mjs`)
 
-- `node scripts/import_guests.mjs guests.csv` (headers: `name, phone`; `email`
-  column optional) → generates a random 8-char token per row from an
-  unambiguous alphabet (no 0/O/1/l/i) via `crypto.randomBytes`, collides-checks,
-  and writes `guest_tokens.csv` (`name, phone, token, link`) where
+- `node scripts/import_guests.mjs guests.csv` (or `guests.txt`) — takes a
+  names-only list: a CSV with a `name` header (a `phone` column is optional
+  and ignored — Twilio legacy) or plain text, one name per line, no header;
+  auto-detected from the first line → generates a random 8-char token per
+  name from an unambiguous alphabet (no 0/O/1/l/i) via `crypto.randomBytes`,
+  collides-checks, and writes `guest_tokens.csv` (`name, token, link`) where
   `link = <SITE_URL>/address?g=<token>` (trailing slash trimmed, BOM for Excel).
 - `SITE_URL` comes from the environment or `.env` (reuses the server's loader).
 - Handles quoted CSV fields ("Alex Davila Jr." with commas/quotes), skips empty
-  rows, and fails with clear messages for: missing file, missing `name`/`phone`
-  headers, missing `SITE_URL`. Documented in `README.md` + `.env.example`.
+  rows, and fails with clear messages for: missing file, missing `name` header,
+  missing `SITE_URL`. Documented in `README.md` + `.env.example`.
 
 ## How the couple runs it
 
 ```bash
-# 1. Generate personal links (guests.csv: name, phone, email?)
+# 1. Generate personal links (names-only list: guests.csv or guests.txt)
 SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
-#    → guest_tokens.csv — send each link via Twilio SMS
+#    → guest_tokens.csv — text each link to its guest from your own phone
 
 # 2. Track responses
 curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses      # matched vs unmatched
