@@ -191,6 +191,12 @@ describe("static serving", () => {
   });
 
   it("serves the branded head tags (OG, twitter, favicon) on every page", async () => {
+    // Attribute order/line-wrapping varies with the formatter, so parse
+    // each <meta> tag as a whole instead of matching same-line substrings.
+    const metaContent = (html, attr, key) => {
+      const tag = html.match(new RegExp(`<meta[^>]*${attr}="${key}"[^>]*>`));
+      return tag?.[0].match(/content="([^"]*)"/)?.[1] ?? null;
+    };
     const routes = {
       "/": "home",
       "/about": "about",
@@ -211,19 +217,25 @@ describe("static serving", () => {
       const res = await fetch(base + route);
       expect(res.status).toBe(200);
       const html = await res.text();
-      expect(html).toContain(
-        `property="og:image" content="https://thedavilaswedding.parallel5.com/og/${image}.png"`,
+      expect(metaContent(html, "property", "og:image")).toBe(
+        `https://thedavilaswedding.parallel5.com/og/${image}.png`,
       );
-      expect(html).toContain(
-        'name="twitter:card" content="summary_large_image"',
+      expect(metaContent(html, "name", "twitter:card")).toBe(
+        "summary_large_image",
       );
-      expect(html).toContain('href="/favicon.svg"');
-      expect(html).toContain('href="/apple-touch-icon.png"');
+      expect(html).toMatch(
+        /rel="icon"[^>]*href="\/favicon\.svg"|href="\/favicon\.svg"[^>]*rel="icon"/,
+      );
+      expect(html).toMatch(
+        /rel="apple-touch-icon"[^>]*href="\/apple-touch-icon\.png"|href="\/apple-touch-icon\.png"[^>]*rel="apple-touch-icon"/,
+      );
     }
 
     // The styled 404 (served from pages/404.html) carries them too.
     const missing = await fetch(base + "/no-such-page");
     expect(missing.status).toBe(404);
-    expect(await missing.text()).toContain('property="og:image"');
+    expect(metaContent(await missing.text(), "property", "og:image")).toBe(
+      "https://thedavilaswedding.parallel5.com/og/404.png",
+    );
   });
 });
