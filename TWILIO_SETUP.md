@@ -12,17 +12,17 @@ Checklist for Fernando to work through tomorrow. Nothing here blocks the website
 
 US carriers require all bulk SMS to come from a registered brand + campaign:
 
-1. Console → **Messaging → Regulatory Compliance (A2P) → Brand Registration** — register as a **sole prop or individual brand** (Kendra & Nando's names + address). Costs a one-time ~$44 brand fee
+1. Console → **Messaging → Regulatory Compliance (A2P) → Brand Registration** — register as a **Sole Proprietor** brand (Kendra & Nando's names + address). ~$4.50 brand fee + $15 one-time campaign review, then ~$2/month for the campaign. (The ~$44 figure is the Standard tier — not needed at this scale. Sole Proprietor also has a simpler campaign form: no "Mixed" / "Low volume mixed" use-case picker.)
 2. Then **Campaign Registration** (uses the brand):
-   - Use case: **Mixed / Account notifications** (or "Low volume mixed" — cheapest suitable option for low-volume)
+   - Use case: follow the Sole Proprietor flow's simplified options (pick the closest match to personal event outreach)
    - Sample messages: paste 2–3 examples, e.g. _"Kendra & Nando here! We're getting a head start on invitations — give us your current mailing address at <link> 💌 Reply STOP to opt out"_
-   - Opt-in description: guests receive one message after their number is provided by the couple; they can reply STOP to opt out
+   - Opt-in description: guests gave their phone numbers directly to Kendra or Nando (in person / by text); each guest receives one message with their personal mailing-address link, and can reply STOP to opt out
    - Opt-out: reply STOP; no further messages sent
 3. After approval, link the campaign to your phone number (or a **Messaging Service** — Console → Messaging → Services → create one, add your number, attach the campaign)
 
 ## 3. When the guest list is ready (tomorrow)
 
-1. Drop the list as a CSV at `C:\Users\glyph.DESKTOP-F8K8CPE\projects\davilas-wedding\guests.csv` — headers: `name,phone` (phone in any reasonable format; the import normalizes to E.164), optional `email` column
+1. Drop the list as a CSV at `C:\Users\glyph.DESKTOP-F8K8CPE\projects\davilas-wedding\guests.csv` — headers: `name,phone` (mixed phone formats are fine — the import leaves them as typed; the SMS blast script normalizes to E.164 at send time), optional `email` column
 2. Hand it to Glyph — or run it yourself:
    ```
    node scripts/import_guests.mjs guests.csv
@@ -37,14 +37,14 @@ US carriers require all bulk SMS to come from a registered brand + campaign:
 TWILIO_ACCOUNT_SID=...
 TWILIO_AUTH_TOKEN=...
 TWILIO_MESSAGING_SERVICE_SID=...   # from step 2
-SITE_URL=https://<final-domain>/address
+SITE_URL=https://davilas.parallel5.com   # domain only — the script appends /address?g=<token> itself
 ```
 
 ## 5. Cost sanity check
 
 - US SMS outbound: ~$0.0079/msg (pooled) — 100 guests ≈ **under $1** in messages
-- Number: ~$1.15/mo · A2P brand: ~$44 one-time · campaign: ~$1.50/mo (low-volume mixed)
-- **Total for the whole address campaign: roughly $50, dominated by the one-time brand fee**
+- Number: ~$1.15/mo · A2P Sole Proprietor brand: ~$4.50 one-time + $15 campaign review · campaign: ~$2/mo
+- **Total for the whole address campaign: roughly $25 all-in**
 
 ## Status / open items
 
