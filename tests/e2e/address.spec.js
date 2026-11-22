@@ -2,9 +2,33 @@ import { expect, test } from '@playwright/test'
 
 // Every assertion goes through data-testid locators. Like the RSVP and songs
 // specs, the API is mocked via page.route (CI mode) — the server accepts the
-// exact shapes these mocks use.
+// exact shapes these mocks use. The /address page is invite-only: any test
+// that needs the form first mocks GET /api/address/validate for its token.
 
 const SUCCESS_MESSAGE = 'Sealed and delivered — you\u2019re on the list. 💌'
+
+async function mockValidate(page, valid, guestName = 'Zach') {
+  await page.route('**/api/address/validate**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(
+        valid ? { valid: true, guest_name: guestName } : { valid: false }
+      ),
+    })
+  )
+}
+
+function mockSubmit(page, submitted = null) {
+  return page.route('**/api/address', (route) => {
+    if (submitted) submitted.value = route.request().postDataJSON()
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, message: SUCCESS_MESSAGE }),
+    })
+  })
+}
 
 async function fillValidAddress(page) {
   await page.getByTestId('address-name').fill('Fernanda & Alex Davila')
@@ -17,20 +41,19 @@ async function fillValidAddress(page) {
   await page.getByTestId('address-notes').fill("We're moving in June")
 }
 
-test.describe('Mailing address', () => {
-  test('happy path: fill and submit the form, see the warm confirmation', async ({ page }) => {
-    // Mock the API (CI mode) — the server returns this exact message on 201.
-    await page.route('**/api/address', (route) =>
-      route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, message: SUCCESS_MESSAGE }),
-      })
+test.describe('Mailing address (invite-only)', () => {
+  test('happy path: valid token shows the personalized form; submit confirms warmly', async ({ page }) => {
+    await mockValidate(page, true, 'Zach')
+    await mockSubmit(page)
+
+    await page.goto('/address?g=e8sakufe')
+
+    await expect(page.getByTestId('address-invite-only')).toBeHidden()
+    await expect(page.getByTestId('address-form')).toBeVisible()
+    await expect(page.getByTestId('address-guest-name')).toHaveText('Zach')
+    await expect(page.getByTestId('address-heading')).toContainText(
+      'Where should we send it, Zach?'
     )
-
-    await page.goto('/address')
-
-    await expect(page.getByTestId('address-heading')).toBeVisible()
     await expect(page.getByTestId('address-accent')).toContainText(/don't lose us in the mail/i)
     await expect(page.getByTestId('address-lede')).toContainText(/beat the rsvp rush/i)
 
@@ -43,7 +66,10 @@ test.describe('Mailing address', () => {
   })
 
   test('inline validation catches an empty submit and focuses the first field', async ({ page }) => {
-    await page.goto('/address')
+    await mockValidate(page, true, 'Kendra')
+
+    await page.goto('/address?g=h4zxhqe7')
+    await expect(page.getByTestId('address-form')).toBeVisible()
 
     await page.getByTestId('address-submit').click()
 
@@ -59,17 +85,32 @@ test.describe('Mailing address', () => {
     await expect(page.getByTestId('address-name')).toBeFocused()
   })
 
-  test('personal token from ?g= rides along silently and shows up in the admin list', async ({ page }) => {
-    let submitted = null
+  test('tokenless visitors get the invite-only state, not the form', async ({ page }) => {
+    await page.goto('/address')
 
-    await page.route('**/api/address', (route) => {
-      submitted = route.request().postDataJSON()
-      return route.fulfill({
-        status: 201,
-        contentType: 'application/json',
-        body: JSON.stringify({ ok: true, message: SUCCESS_MESSAGE }),
-      })
-    })
+    const invite = page.getByTestId('address-invite-only')
+    await expect(invite).toBeVisible()
+    await expect(invite).toContainText(/invited guests/i)
+    await expect(invite).toContainText(/check your text/i)
+    await expect(invite).toContainText(/personal link/i)
+    await expect(invite).toContainText(/invitation is on its way/i)
+    await expect(page.getByTestId('address-form')).toBeHidden()
+    await expect(page.getByTestId('address-success')).toBeHidden()
+  })
+
+  test('unknown token gets the invite-only state too', async ({ page }) => {
+    await mockValidate(page, false)
+
+    await page.goto('/address?g=zz-not-sent')
+
+    await expect(page.getByTestId('address-invite-only')).toBeVisible()
+    await expect(page.getByTestId('address-form')).toBeHidden()
+  })
+
+  test('personal token rides along silently and shows up in the admin list', async ({ page }) => {
+    const submitted = { value: null }
+    await mockValidate(page, true, 'Zach')
+    await mockSubmit(page, submitted)
 
     // Stateful mock standing in for the database (same pattern as songs.spec).
     const adminList = { matched: [], unmatched: [] }
@@ -95,12 +136,12 @@ test.describe('Mailing address', () => {
     await page.getByTestId('address-submit').click()
     await expect(page.getByTestId('address-success')).toBeVisible()
 
-    // The submission carried the token invisibly…
-    expect(submitted).toBeTruthy()
-    expect(submitted.guest_token).toBe('abc123')
+    // The submission carried the token invisibly (hidden form field)…
+    expect(submitted.value).toBeTruthy()
+    expect(submitted.value.guest_token).toBe('abc123')
 
     // …and the admin endpoint groups that row under "matched".
-    adminList.matched.push({ ...submitted, id: 1, created_at: new Date().toISOString() })
+    adminList.matched.push({ ...submitted.value, id: 1, created_at: new Date().toISOString() })
     const data = await page.evaluate(async () => {
       const res = await fetch('/api/addresses', { headers: { authorization: 'Bearer test-admin-key' } })
       return res.json()
@@ -110,18 +151,21 @@ test.describe('Mailing address', () => {
     expect(data.matched[0].full_name).toBe('Fernanda & Alex Davila')
   })
 
-  test('cross-links: unlisted pages stay directly reachable and cross-linked', async ({
-    page,
-  }) => {
-    // Unlisted: the home page no longer links out to /address…
+  test('links-only: /address stays routed but nothing links to it', async ({ page }) => {
+    // Home: no nav entry, no footer link.
     await page.goto('/')
+    await expect(page.getByTestId('nav-address')).toHaveCount(0)
     await expect(page.getByTestId('footer-address-link')).toHaveCount(0)
 
-    // …but RSVP ↔ address still link to each other on their own pages.
+    // RSVP page: no address link either.
     await page.goto('/rsvp')
-    await expect(page.getByTestId('rsvp-address-link')).toHaveAttribute('href', '/address')
+    await expect(page.getByTestId('rsvp-address-link')).toHaveCount(0)
 
+    // /address itself still serves (invite-only state) and keeps its RSVP teaser.
     await page.goto('/address')
+    await expect(page.getByTestId('address-invite-only')).toBeVisible()
+    await expect(page.getByTestId('nav-address')).toHaveCount(0)
+    await expect(page.getByTestId('footer-address-link')).toHaveCount(0)
     await expect(page.getByTestId('address-rsvp-link')).toHaveAttribute('href', '/rsvp')
   })
 })

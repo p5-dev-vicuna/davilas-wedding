@@ -8,8 +8,10 @@
       name="description"
       content="Beat the RSVP rush — give Kendra & Nando your current mailing address so your invitation finds you."
     />
-    <!-- Unlisted while invites are pending: reachable by direct link, hidden
-         from search indexes. Nav links/cards return when invitations go out. -->
+    <!-- Links-only: reachable ONLY via the personal /address?g=<token> links
+         texted to guests. No nav/footer/home links anywhere; tokenless
+         visitors see a warm invite-only state (validated client-side on
+         load, enforced server-side on submit). -->
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -75,11 +77,6 @@
             <li>
               <a href="/songs" data-testid="nav-songs">Song Requests</a>
             </li>
-            <li>
-              <a href="/address" data-testid="nav-address" aria-current="page"
-                >Mailing Address</a
-              >
-            </li>
           </ul>
         </nav>
         <!-- RSVP: the standout header button, opposite the nav, on every page. -->
@@ -109,12 +106,28 @@
           </p>
         </header>
 
+        <!-- Invite-only state: the default for tokenless/unknown-token
+             visitors. Valid personal links swap this out for the form. -->
+        <div class="callout" data-testid="address-invite-only">
+          <p class="script script-accent">just for our guests</p>
+          <p>
+            This page is for invited guests — check your text from Kendra &amp;
+            Nando for your personal link. Didn't get one? Your invitation is on
+            its way — no need to do anything yet.
+          </p>
+        </div>
+
         <form
           id="address-form"
           class="form"
           novalidate
+          hidden
           data-testid="address-form"
         >
+          <!-- The personal-link token rides along invisibly (set by the
+               gate script below once the server validates it). -->
+          <input type="hidden" name="guest_token" value="" />
+
           <div class="field">
             <label for="address-name">Full name(s)</label>
             <p class="field-hint" id="address-name-hint">
@@ -305,8 +318,6 @@
         <span aria-hidden="true">·</span>
         <a href="/faq" data-testid="footer-faq-link">FAQ</a>
         <span aria-hidden="true">·</span>
-        <a href="/address" data-testid="footer-address-link">Addresses</a>
-        <span aria-hidden="true">·</span>
         <a href="/privacy" data-testid="footer-privacy-link">Privacy</a>
         <span aria-hidden="true">·</span>
         <a href="/terms" data-testid="footer-terms-link">Terms</a>
@@ -357,15 +368,60 @@
         '[data-testid="address-success-text"]',
       );
 
-      // Personal link token (?g=<token>) — silent by design: nothing renders
-      // it, it just rides along with the submission so the couple can
-      // cross-reference guest_tokens.csv. Absent token is fine — the form
-      // works either way.
-      const guestToken =
+      // Invite-only gate: the form only appears for a valid personal-link
+      // token (?g=<token> — texted to each guest). On load we ask the server
+      // to validate it; anything else (missing/unknown token, fetch failure,
+      // no JS) leaves the warm invite-only block in place.
+      const inviteOnly = document.querySelector(
+        '[data-testid="address-invite-only"]',
+      );
+      const heading = document.querySelector('[data-testid="address-heading"]');
+      const tokenInput = form.elements.namedItem("guest_token");
+      const token =
         new URLSearchParams(window.location.search)
           .get("g")
           ?.trim()
           .slice(0, 64) ?? "";
+
+      function personalizeHeading(guestName) {
+        if (!heading) return;
+        heading.textContent = "";
+        heading.append("Where should we send it, ");
+        const nameSpan = document.createElement("span");
+        nameSpan.setAttribute("data-testid", "address-guest-name");
+        nameSpan.textContent = guestName; // textContent — never innerHTML
+        heading.appendChild(nameSpan);
+        heading.append("?");
+      }
+
+      function showInviteOnly() {
+        if (inviteOnly) inviteOnly.hidden = false;
+        form.hidden = true;
+        inviteOnly?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      (async () => {
+        if (!token) {
+          showInviteOnly();
+          return;
+        }
+        try {
+          const res = await fetch(
+            `/api/address/validate?g=${encodeURIComponent(token)}`,
+          );
+          const data = res.ok ? await res.json().catch(() => null) : null;
+          if (data?.valid) {
+            tokenInput.value = token;
+            personalizeHeading(data.guest_name ?? "friend");
+            inviteOnly.hidden = true;
+            form.hidden = false;
+          } else {
+            showInviteOnly();
+          }
+        } catch {
+          showInviteOnly(); // fail closed — the server checks again on submit
+        }
+      })();
 
       // server field name -> testid infix used on this page
       const errorMap = {
@@ -502,7 +558,7 @@
               postal_code: zip.trim(),
               country: country.trim(),
               notes: notes.trim(),
-              guest_token: guestToken || null,
+              guest_token: tokenInput.value || null,
             }),
           });
 
@@ -536,6 +592,13 @@
             setFormError(
               "Submissions aren't available just yet — please try again soon.",
             );
+            return;
+          }
+
+          if (res.status === 403) {
+            // Server-side gate: not a valid personal link. Swap the form
+            // for the invite-only state — no retry loop for a rejected guest.
+            showInviteOnly();
             return;
           }
 

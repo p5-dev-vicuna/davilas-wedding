@@ -53,6 +53,10 @@ const NOT_CONFIGURED_MESSAGE =
   "Submissions aren't available just yet — please try again soon.";
 const GENERIC_ERROR_MESSAGE =
   "Something went wrong on our end — please try again in a moment.";
+const ADDRESS_INVITE_ONLY_MESSAGE =
+  "This page is for guests with a personal link — check your text from " +
+  "Kendra & Nando. Didn't get one? Your invitation is on its way — no " +
+  "need to do anything yet.";
 
 async function jsonBody(req) {
   try {
@@ -196,6 +200,40 @@ async function postSong(req, server) {
   }
 }
 
+/* ---------------------- invite-only address gate ------------------------ */
+
+/**
+ * GET /api/address/validate?g=<token> — public. Tells the /address page
+ * whether the personal-link token is real and, if so, which guest it
+ * belongs to (so the page can greet them by name). Fail-closed: missing
+ * token, unknown token, unconfigured DB, or a DB error all mean
+ * { valid: false } — the page then shows the invite-only state.
+ */
+async function getAddressValidate(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const token =
+    new URL(req.url).searchParams.get("g")?.trim().slice(0, 64) ?? "";
+  if (!token) return Response.json({ valid: false });
+
+  const db = getDb();
+  if (!db) return Response.json({ valid: false });
+
+  try {
+    const rows = await db`
+      SELECT guest_name FROM guest_tokens WHERE token = ${token} LIMIT 1
+    `;
+    const row = rows[0];
+    return Response.json(
+      row ? { valid: true, guest_name: row.guest_name } : { valid: false },
+    );
+  } catch (err) {
+    console.error("[api] failed to validate guest token:", err); // server log only
+    return Response.json({ valid: false });
+  }
+}
+
 async function postAddress(req, server) {
   const denial = rateLimitDenial(req, server);
   if (denial) return denial;
@@ -213,6 +251,15 @@ async function postAddress(req, server) {
     );
   }
 
+  // Invite-only gate: a submission is only accepted through a personal
+  // link. No token → 403 before anything else (fail closed).
+  if (!result.value.guest_token) {
+    return Response.json(
+      { ok: false, error: ADDRESS_INVITE_ONLY_MESSAGE },
+      { status: 403 },
+    );
+  }
+
   const db = getDb();
   if (!db) {
     console.warn(
@@ -223,10 +270,21 @@ async function postAddress(req, server) {
 
   try {
     const v = result.value;
-    await db`
+    // JOIN check: the row only lands if the token exists in guest_tokens.
+    // (Atomic — no window between lookup and insert.)
+    const inserted = await db`
       INSERT INTO addresses (full_name, street, unit, city, state, postal_code, country, notes, guest_token)
-      VALUES (${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, ${v.guest_token})
+      SELECT ${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, t.token
+      FROM guest_tokens t
+      WHERE t.token = ${v.guest_token}
+      RETURNING id
     `;
+    if (inserted.length === 0) {
+      return Response.json(
+        { ok: false, error: ADDRESS_INVITE_ONLY_MESSAGE },
+        { status: 403 },
+      );
+    }
     return Response.json(
       { ok: true, message: "Sealed and delivered — you're on the list. 💌" },
       { status: 201 },
@@ -456,6 +514,7 @@ export function createRoutes() {
     "/api/rsvps": { GET: getRsvps },
     "/api/rsvps.csv": { GET: getRsvpsCsv },
     "/api/address": { POST: postAddress },
+    "/api/address/validate": { GET: getAddressValidate },
     "/api/addresses": { GET: getAddresses },
     "/api/addresses.csv": { GET: getAddressesCsv },
   };

@@ -7,6 +7,11 @@
 // guest_tokens.csv (name, phone, token, link) where
 //   link = <SITE_URL>/address?g=<token>
 //
+// With --sync, each token is also INSERTed into the guest_tokens table in
+// Neon (DATABASE_URL from env/.env) so /address accepts the link:
+//   node scripts/import_guests.mjs --sync guests.csv
+// Without the flag the run stays CSV-only (generate first, sync later).
+//
 // SITE_URL comes from the environment (or .env — the same loader the server
 // uses). Send each guest their link via Twilio SMS; when they submit their
 // address the token is stored invisibly, so guest_tokens.csv cross-references
@@ -19,10 +24,15 @@ import crypto from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { loadEnvFile } from "../server/env.js";
+import { getDb } from "../server/db.js";
 
 const ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"; // no 0/O/1/l/i — read aloud safely
 const TOKEN_LENGTH = 8;
 
+/**
+ * Print an error and exit(1).
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`[import_guests] ${message}`);
   process.exit(1);
@@ -78,10 +88,13 @@ function csvEscape(value) {
 
 loadEnvFile(); // picks up SITE_URL from .env if present (real env vars win)
 
-const inputPath = process.argv[2];
+const argList = process.argv.slice(2);
+const sync = argList.includes("--sync");
+const inputPath = argList.find((arg) => !arg.startsWith("--"));
 if (!inputPath) {
   fail(
-    "usage: node scripts/import_guests.mjs <guests.csv>  (headers: name, phone; email optional)",
+    "usage: node scripts/import_guests.mjs <guests.csv> [--sync]  " +
+      "(headers: name, phone; email optional; --sync also inserts tokens into guest_tokens)",
   );
 }
 
@@ -150,6 +163,37 @@ writeFileSync(outputPath, "\uFEFF" + csv); // BOM so Excel opens UTF-8 happily
 console.log(
   `[import_guests] wrote ${rows.length} personal link(s) to ${outputPath}`,
 );
+
+if (sync) {
+  const db = getDb();
+  if (!db) {
+    fail(
+      "--sync needs DATABASE_URL — add it to .env or the environment so tokens can be inserted into guest_tokens.",
+    );
+  }
+  let inserted = 0;
+  try {
+    for (const row of rows) {
+      const result = await db`
+        INSERT INTO guest_tokens (token, guest_name)
+        VALUES (${row.token}, ${row.name})
+        ON CONFLICT (token) DO NOTHING
+        RETURNING token
+      `;
+      if (result.length > 0) inserted++;
+    }
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    fail(`--sync failed mid-run (${reason}) — re-run to finish.`);
+  } finally {
+    await db.end().catch(() => {});
+  }
+  console.log(
+    `[import_guests] synced ${rows.length} token(s) to guest_tokens ` +
+      `(${inserted} new, ${rows.length - inserted} already present)`,
+  );
+}
+
 console.log(
   "[import_guests] next: send each link via Twilio SMS, then track responses at",
 );
