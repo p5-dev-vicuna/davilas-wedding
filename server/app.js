@@ -15,6 +15,8 @@ import galleryPage from "../pages/gallery.html";
 import faqPage from "../pages/faq.html";
 import registryPage from "../pages/registry.html";
 import songsPage from "../pages/songs.html";
+import privacyPage from "../pages/privacy.html";
+import termsPage from "../pages/terms.html";
 import { getDb } from "./db.js";
 import { validateAddress, validateRsvp, validateSong } from "./validate.js";
 import { createRateLimiter } from "./rate-limit.js";
@@ -445,6 +447,8 @@ export function createRoutes() {
     "/faq": faqPage,
     "/registry": registryPage,
     "/songs": songsPage,
+    "/privacy": privacyPage,
+    "/terms": termsPage,
     // API — HTTP method handlers inline.
     "/api/rsvp": { POST: postRsvp },
     "/api/song": { POST: postSong },
