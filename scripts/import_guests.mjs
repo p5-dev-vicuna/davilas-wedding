@@ -11,8 +11,12 @@
 //   node scripts/import_guests.mjs guests.csv
 //   node scripts/import_guests.mjs guests.txt
 // Generates a random 8-character personal token per name and writes
-// guest_tokens.csv (name, token, link) where
+// guest_tokens.csv (name, token, link, message) where
 //   link = <SITE_URL>/address?g=<token>
+//   message = ready-to-send SMS text, one per guest:
+//     "Hey <name>, We are getting addresses together for Save the Dates
+//      and Invites, can you go to this link and submit your address: <link>"
+//     (CSV-quoted — it contains commas)
 //
 // With --sync, each token is also INSERTed into the guest_tokens table in
 // Neon (DATABASE_URL from env/.env) so /address accepts the link:
@@ -20,10 +24,10 @@
 // Without the flag the run stays CSV-only (generate first, sync later).
 //
 // SITE_URL comes from the environment (or .env — the same loader the server
-// uses). Text each guest their link from your own phone; when they submit
-// their address the token is stored invisibly, so guest_tokens.csv
-// cross-references exactly who has responded (see GET /api/addresses
-// "matched" group).
+// uses). Text each guest their pre-composed message (it carries their link)
+// from your own phone; when they submit their address the token is stored
+// invisibly, so guest_tokens.csv cross-references exactly who has responded
+// (see GET /api/addresses "matched" group).
 //
 // The CSV parser below handles quoted fields containing commas/quotes (the
 // typical spreadsheet export); newlines inside quoted fields are not supported
@@ -160,7 +164,11 @@ for (const name of names) {
   let token = makeToken();
   while (seenTokens.has(token)) token = makeToken(); // 40 bits — collisions ~never
   seenTokens.add(token);
-  rows.push({ name, token, link: `${siteUrl}/address?g=${token}` });
+  const link = `${siteUrl}/address?g=${token}`;
+  const message =
+    `Hey ${name}, We are getting addresses together for Save the Dates and ` +
+    `Invites, can you go to this link and submit your address: ${link}`;
+  rows.push({ name, token, link, message });
 }
 
 if (skipped > 0)
@@ -168,9 +176,11 @@ if (skipped > 0)
 
 const outputPath = path.join(process.cwd(), "guest_tokens.csv");
 const csv =
-  "name,token,link\r\n" +
+  "name,token,link,message\r\n" +
   rows
-    .map((row) => [row.name, row.token, row.link].map(csvEscape).join(","))
+    .map((row) =>
+      [row.name, row.token, row.link, row.message].map(csvEscape).join(","),
+    )
     .join("\r\n");
 
 writeFileSync(outputPath, "\uFEFF" + csv); // BOM so Excel opens UTF-8 happily
@@ -210,7 +220,7 @@ if (sync) {
 }
 
 console.log(
-  "[import_guests] next: text each link to its guest from your own phone,",
+  "[import_guests] next: text each message to its guest from your own phone,",
 );
 console.log(
   "[import_guests]   then track responses at GET /api/addresses (matched vs",

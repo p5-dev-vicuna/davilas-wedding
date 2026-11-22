@@ -125,15 +125,15 @@ auto-detected:
 
 ```bash
 SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
-# → writes guest_tokens.csv: name, token, link (CSV only)
+# → writes guest_tokens.csv: name, token, link, message (CSV only)
 
 SITE_URL=https://your-host node scripts/import_guests.mjs --sync guests.csv
 # → same CSV, plus inserts every token into guest_tokens (needs DATABASE_URL;
 #   prints the synced count — only synced tokens are accepted by /address)
 ```
 
-(`SITE_URL` may also live in `.env`.) Text each `link` to that guest from your
-own phone.
+(`SITE_URL` may also live in `.env`.) Text each guest their `message` — the
+ready-to-send SMS carrying their `link` — from your own phone.
 
 **Pull the results** (cross-reference against `guest_tokens.csv`):
 
