@@ -75,9 +75,9 @@ ADMIN_KEY=a-long-random-string
 - **`DATABASE_URL`** — Neon connection string (the **pooled** endpoint — Bun's
   SQL client speaks plain TCP). Run `schema.sql` once against the
   database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps`,
-  `song_requests`, `addresses`, and `guest_tokens` tables (existing databases:
-  apply `migrations/001_add_addresses.sql` and
-  `migrations/002_add_guest_tokens.sql` incrementally). **Until
+  `song_requests`, `addresses`, and `guest_tokens` tables; existing databases
+  apply the numbered `migrations/*.sql` incrementally instead (latest:
+  `003_add_texted_by.sql`, the who-texted-them tracking column). **Until
   this is set, `POST /api/rsvp`, `POST /api/song`, and `POST /api/address`
   return 503 with a friendly message** (and `GET /api/songs` returns an empty
   list) — so the site can deploy before credentials exist.
@@ -89,21 +89,23 @@ ADMIN_KEY=a-long-random-string
   curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/rsvps.csv    # spreadsheet
   curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/addresses    # JSON (matched/unmatched)
   curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/addresses.csv # spreadsheet
+  curl -H "Authorization: Bearer $ADMIN_KEY" http://localhost:3000/api/guests       # JSON guest tracker
   ```
 
 ## API
 
-| Endpoint                | Method | Auth        | Notes                                                                     |
-| ----------------------- | ------ | ----------- | ------------------------------------------------------------------------- |
-| `/api/rsvp`             | POST   | —           | Validates server-side (party 1–10, length caps), inserts into `rsvps`     |
-| `/api/song`             | POST   | —           | Validates (title/artist/name), inserts into `song_requests`               |
-| `/api/songs`            | GET    | —           | Latest 100 requests; first names only                                     |
-| `/api/rsvps`            | GET    | ADMIN_KEY   | All RSVPs as JSON                                                         |
-| `/api/rsvps.csv`        | GET    | ADMIN_KEY   | All RSVPs as CSV (Excel-friendly)                                         |
-| `/api/address/validate` | GET    | —           | `?g=<token>` → `{valid, guest_name}` — personal-link check for `/address` |
-| `/api/address`          | POST   | guest token | Requires a valid `guest_token` (personal link), validates fields, inserts |
-| `/api/addresses`        | GET    | ADMIN_KEY   | Addresses as JSON, grouped `matched` (personal link) / `unmatched`        |
-| `/api/addresses.csv`    | GET    | ADMIN_KEY   | Addresses as CSV (Excel-friendly)                                         |
+| Endpoint                | Method | Auth        | Notes                                                                           |
+| ----------------------- | ------ | ----------- | ------------------------------------------------------------------------------- |
+| `/api/rsvp`             | POST   | —           | Validates server-side (party 1–10, length caps), inserts into `rsvps`           |
+| `/api/song`             | POST   | —           | Validates (title/artist/name), inserts into `song_requests`                     |
+| `/api/songs`            | GET    | —           | Latest 100 requests; first names only                                           |
+| `/api/rsvps`            | GET    | ADMIN_KEY   | All RSVPs as JSON                                                               |
+| `/api/rsvps.csv`        | GET    | ADMIN_KEY   | All RSVPs as CSV (Excel-friendly)                                               |
+| `/api/address/validate` | GET    | —           | `?g=<token>` → `{valid, guest_name}` — personal-link check for `/address`       |
+| `/api/address`          | POST   | guest token | Requires a valid `guest_token` (personal link), validates fields, inserts       |
+| `/api/addresses`        | GET    | ADMIN_KEY   | Addresses as JSON, grouped `matched` (personal link) / `unmatched`              |
+| `/api/addresses.csv`    | GET    | ADMIN_KEY   | Addresses as CSV, incl. `texted_by` (Excel-friendly)                            |
+| `/api/guests`           | GET    | ADMIN_KEY   | Guest tracker: every guest + texted_by + responded + address, unresponded first |
 
 All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 (token bucket), and DB errors are never leaked to clients (logged server-side only).
@@ -118,28 +120,37 @@ rejects their submissions with 403. Valid tokens live in the `guest_tokens`
 table (`GET /api/address/validate` checks it) and are stored with the
 submission so you can tell exactly who responded.
 
-**Generate the personal links** from a names-only list — either a CSV with a
-`name` header (a `phone` column is optional and ignored — Twilio legacy) or a
-plain text file with one name per line (no header). The format is
-auto-detected:
+**Generate the personal links** from a guest list — either a CSV with a
+`name` header (a `phone` column is optional and ignored — Twilio legacy) or
+a plain text file with one name per line (no header). The format is
+auto-detected. The CSV may also carry a **"who texted them"** column,
+accepted under any of the headers `who`, `who_text_them`, or `texted_by`
+(values: `Nando` / `Kendra`, empty allowed — plain text lists simply leave
+it empty):
 
 ```bash
 SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
-# → writes guest_tokens.csv: name, token, link, message (CSV only)
+# → writes guest_tokens.csv: name, who, token, link, message (CSV only)
 
 SITE_URL=https://your-host node scripts/import_guests.mjs --sync guests.csv
-# → same CSV, plus inserts every token into guest_tokens (needs DATABASE_URL;
-#   prints the synced count — only synced tokens are accepted by /address)
+# → same CSV, plus inserts every token into guest_tokens with the who value
+#   in texted_by (needs DATABASE_URL; prints the synced count — only synced
+#   tokens are accepted by /address)
 ```
 
 (`SITE_URL` may also live in `.env`.) Text each guest their `message` — the
 ready-to-send SMS carrying their `link` — from your own phone.
 
-**Pull the results** (cross-reference against `guest_tokens.csv`):
+**Pull the results** — `GET /api/guests` is the tracking paste source: one
+row per guest (name, token, who texted them, responded?, address or null),
+sorted unresponded-first, ready to paste into a Google Sheet and filter by
+texter. The address exports stay grouped for cross-referencing
+`guest_tokens.csv`:
 
 ```bash
-curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses      # JSON, matched/unmatched
-curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv  # spreadsheet
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/guests        # JSON, one row per guest
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses     # JSON, matched/unmatched
+curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv # spreadsheet (incl. texted_by)
 ```
 
 **Database:** fresh Neon databases can run `schema.sql` as before. Existing
@@ -148,6 +159,7 @@ databases should apply the incremental migrations instead:
 ```bash
 psql "$DATABASE_URL" -f migrations/001_add_addresses.sql     # addresses table
 psql "$DATABASE_URL" -f migrations/002_add_guest_tokens.sql  # invite-only gate + the sent tokens
+psql "$DATABASE_URL" -f migrations/003_add_texted_by.sql     # who-texted-them tracking column
 ```
 
 ## Where the couple edits things
@@ -225,7 +237,8 @@ scripts/            run-e2e.mjs (E2E runner), import_guests.mjs (personal /addre
 bunfig.toml         bun test/lint/fmt configuration
 tsconfig.json       bun check (typecheck) configuration
 schema.sql          Neon Postgres tables (rsvps, song_requests, addresses, guest_tokens)
-migrations/         incremental schema changes for existing databases (001 addresses, 002 guest tokens)
+migrations/         incremental schema changes for existing databases (001 addresses,
+                    002 guest tokens, 003 texted_by tracking column)
 .githooks/          pre-commit hook (activate: git config core.hooksPath .githooks)
 BUN_REWRITE_REPORT.md  what changed vs main, verification output, canary workarounds
 ```

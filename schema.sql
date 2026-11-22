@@ -44,9 +44,12 @@ CREATE INDEX IF NOT EXISTS addresses_guest_token_idx ON addresses (guest_token);
 -- Invite-only gate for /address (migrations/002_add_guest_tokens.sql for
 -- existing databases): every personal link's token lives here, and both
 -- GET /api/address/validate and POST /api/address check against it.
+-- texted_by ("who texted them": Nando / Kendra, or NULL) feeds the guest
+-- tracking output — migrations/003_add_texted_by.sql for existing databases.
 CREATE TABLE IF NOT EXISTS guest_tokens (
   token text PRIMARY KEY,
   guest_name text NOT NULL,
+  texted_by text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

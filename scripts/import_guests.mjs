@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 // Guest-list import for the pre-RSVP mailing-address capture.
 //
-// Reads a names-only list of guests — either format, auto-detected from the
-// first line (treated as a CSV header when it contains a comma or equals
-// "name"):
+// Reads a list of guests — either format, auto-detected from the first line
+// (treated as a CSV header when it contains a comma or equals "name"):
 //   1. CSV with a `name` header — a `phone` column is optional and ignored
 //      (Twilio legacy: guests are texted manually from the couple's own
-//      phones); any other column is ignored too
-//   2. plain text — one name per line, no header
+//      phones); any other column is ignored too, except the optional
+//      "who texted them" column, accepted under any of these headers:
+//      `who`, `who_text_them`, `texted_by` (values: "Nando" / "Kendra";
+//      empty allowed — casing is normalized for the two known names)
+//   2. plain text — one name per line, no header (who stays empty)
 //   node scripts/import_guests.mjs guests.csv
 //   node scripts/import_guests.mjs guests.txt
 // Generates a random 8-character personal token per name and writes
-// guest_tokens.csv (name, token, link, message) where
+// guest_tokens.csv (name, who, token, link, message) where
 //   link = <SITE_URL>/address?g=<token>
 //   message = ready-to-send SMS text, one per guest:
 //     "Hey <name>, We are getting addresses together for Save the Dates
@@ -19,7 +21,8 @@
 //     (CSV-quoted — it contains commas)
 //
 // With --sync, each token is also INSERTed into the guest_tokens table in
-// Neon (DATABASE_URL from env/.env) so /address accepts the link:
+// Neon (DATABASE_URL from env/.env) so /address accepts the link, with the
+// who value written into the new texted_by column:
 //   node scripts/import_guests.mjs --sync guests.txt
 // Without the flag the run stays CSV-only (generate first, sync later).
 //
@@ -106,8 +109,9 @@ const inputPath = argList.find((arg) => !arg.startsWith("--"));
 if (!inputPath) {
   fail(
     "usage: node scripts/import_guests.mjs <names.csv|names.txt> [--sync]  " +
-      "(names-only: CSV with a name header (phone column optional, ignored) or " +
-      "one name per line; --sync also inserts tokens into guest_tokens)",
+      "(CSV with a name header (phone column optional, ignored) or one name " +
+      "per line; optional who-texted-them column: who / who_text_them / " +
+      "texted_by; --sync also inserts tokens into guest_tokens with texted_by)",
   );
 }
 
@@ -134,8 +138,23 @@ if (lines.length === 0) fail("no guest names found — the input file is empty."
 const firstLine = lines[0].trim();
 const isCsv = firstLine.includes(",") || firstLine.toLowerCase() === "name";
 
-/** @type {string[]} */
-let names;
+// "who texted them" — accepted under any of these headers (first match wins).
+const WHO_HEADERS = ["who", "who_text_them", "texted_by"];
+
+/**
+ * Normalize a who-texted-them value: empty stays empty, the two known
+ * texters get canonical casing ("nando" → "Nando"), anything else passes
+ * through as typed (trimmed).
+ */
+function normalizeTexter(value) {
+  const trimmed = (value ?? "").trim();
+  if (/^nando$/i.test(trimmed)) return "Nando";
+  if (/^kendra$/i.test(trimmed)) return "Kendra";
+  return trimmed;
+}
+
+/** @type {{ name: string, who: string }[]} */
+let guests;
 if (isCsv) {
   if (lines.length < 2)
     fail('the CSV needs a "name" header row and at least one guest.');
@@ -147,16 +166,25 @@ if (isCsv) {
         '(a "phone" column is optional and ignored — Twilio legacy).',
     );
   }
-  names = lines.slice(1).map((line) => splitCsvLine(line)[nameIndex] ?? "");
+  const whoIndex = header.findIndex(
+    (column, index) => index !== nameIndex && WHO_HEADERS.includes(column),
+  );
+  guests = lines.slice(1).map((line) => {
+    const fields = splitCsvLine(line);
+    return {
+      name: fields[nameIndex] ?? "",
+      who: whoIndex === -1 ? "" : normalizeTexter(fields[whoIndex]),
+    };
+  });
 } else {
-  names = lines.map((line) => line.trim());
+  guests = lines.map((line) => ({ name: line.trim(), who: "" }));
 }
 
 const seenTokens = new Set();
 const rows = [];
 let skipped = 0;
 
-for (const name of names) {
+for (const { name, who } of guests) {
   if (!name) {
     skipped++;
     continue;
@@ -168,7 +196,7 @@ for (const name of names) {
   const message =
     `Hey ${name}, We are getting addresses together for Save the Dates and ` +
     `Invites, can you go to this link and submit your address: ${link}`;
-  rows.push({ name, token, link, message });
+  rows.push({ name, who, token, link, message });
 }
 
 if (skipped > 0)
@@ -176,10 +204,12 @@ if (skipped > 0)
 
 const outputPath = path.join(process.cwd(), "guest_tokens.csv");
 const csv =
-  "name,token,link,message\r\n" +
+  "name,who,token,link,message\r\n" +
   rows
     .map((row) =>
-      [row.name, row.token, row.link, row.message].map(csvEscape).join(","),
+      [row.name, row.who, row.token, row.link, row.message]
+        .map(csvEscape)
+        .join(","),
     )
     .join("\r\n");
 
@@ -200,8 +230,8 @@ if (sync) {
   try {
     for (const row of rows) {
       const result = await db`
-        INSERT INTO guest_tokens (token, guest_name)
-        VALUES (${row.token}, ${row.name})
+        INSERT INTO guest_tokens (token, guest_name, texted_by)
+        VALUES (${row.token}, ${row.name}, ${row.who || null})
         ON CONFLICT (token) DO NOTHING
         RETURNING token
       `;
@@ -223,6 +253,8 @@ console.log(
   "[import_guests] next: text each message to its guest from your own phone,",
 );
 console.log(
-  "[import_guests]   then track responses at GET /api/addresses (matched vs",
+  "[import_guests]   then track responses at GET /api/guests (per guest,",
 );
-console.log("[import_guests]   unmatched) or /api/addresses.csv");
+console.log(
+  "[import_guests]   filterable by the who column) or /api/addresses.csv",
+);

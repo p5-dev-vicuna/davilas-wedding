@@ -27,7 +27,7 @@ if (!dbConfigured()) {
 if (!process.env.ADMIN_KEY) {
   console.warn(
     "[server] ADMIN_KEY is not set — admin endpoints (GET /api/rsvps, /api/rsvps.csv,\n" +
-      "         /api/addresses, /api/addresses.csv) are disabled.\n",
+      "         /api/addresses, /api/addresses.csv, /api/guests) are disabled.\n",
   );
 }
 

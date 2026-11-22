@@ -420,10 +420,15 @@ async function getAddresses(req, server) {
     return jsonError("The database is not configured yet.", 503);
   }
   try {
+    // LEFT JOIN guest_tokens so each submitted address carries its
+    // texted_by ("who texted them") — rows whose token isn't in
+    // guest_tokens get NULL.
     const rows = await db`
-      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
-      FROM addresses
-      ORDER BY created_at DESC
+      SELECT a.id, a.full_name, a.street, a.unit, a.city, a.state, a.postal_code,
+             a.country, a.notes, a.guest_token, g.texted_by, a.created_at
+      FROM addresses a
+      LEFT JOIN guest_tokens g ON g.token = a.guest_token
+      ORDER BY a.created_at DESC
     `;
     // Grouped for cross-referencing guest_tokens.csv: matched rows arrived
     // via a personal SMS link, unmatched rows were typed manually.
@@ -452,13 +457,17 @@ async function getAddressesCsv(req, server) {
     return jsonError("The database is not configured yet.", 503);
   }
   try {
+    // Same LEFT JOIN as GET /api/addresses: texted_by per submitted
+    // address, empty when the token isn't in guest_tokens.
     const rows = await db`
-      SELECT id, full_name, street, unit, city, state, postal_code, country, notes, guest_token, created_at
-      FROM addresses
-      ORDER BY created_at DESC
+      SELECT a.id, a.full_name, a.street, a.unit, a.city, a.state, a.postal_code,
+             a.country, a.notes, a.guest_token, g.texted_by, a.created_at
+      FROM addresses a
+      LEFT JOIN guest_tokens g ON g.token = a.guest_token
+      ORDER BY a.created_at DESC
     `;
     const header =
-      "id,full_name,street,unit,city,state,postal_code,country,notes,guest_token,created_at";
+      "id,full_name,street,unit,city,state,postal_code,country,notes,guest_token,texted_by,created_at";
     const lines = rows.map((row) =>
       [
         row.id,
@@ -471,6 +480,7 @@ async function getAddressesCsv(req, server) {
         csvEscape(row.country),
         csvEscape(row.notes),
         csvEscape(row.guest_token),
+        csvEscape(row.texted_by),
         csvEscape(isoOrNull(row.created_at)),
       ].join(","),
     );
@@ -485,6 +495,88 @@ async function getAddressesCsv(req, server) {
     });
   } catch (err) {
     console.error("[api] failed to export addresses:", err);
+    return jsonError(GENERIC_ERROR_MESSAGE, 500);
+  }
+}
+
+/* ------------------------- guest tracking output ------------------------ */
+
+/**
+ * GET /api/guests (ADMIN_KEY) — the "who has responded" paste source for
+ * the couple's Google Sheet. Every guest_tokens row LEFT JOINed against
+ * addresses on guest_token: responded = at least one submitted address
+ * (the newest one is reported), address = that submission or null. Sorted
+ * unresponded first (they still need a nudge), then by texted_by (so each
+ * texter's half sits together — rows with no texter sink to the end), then
+ * by guest name.
+ */
+async function getGuests(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const denied = adminDenial(req);
+  if (denied) return jsonError(denied.message, denied.status);
+
+  const db = getDb();
+  if (!db) {
+    console.warn(
+      "[api] GET /api/guests reached without DATABASE_URL — returning 503",
+    );
+    return jsonError("The database is not configured yet.", 503);
+  }
+  try {
+    // Rows arrive grouped by token, oldest address first — so repeated
+    // submissions simply overwrite earlier ones and the latest wins.
+    const rows = await db`
+      SELECT g.guest_name, g.token, g.texted_by, g.created_at AS guest_created_at,
+             a.id, a.full_name, a.street, a.unit, a.city, a.state, a.postal_code,
+             a.country, a.notes, a.guest_token, a.created_at
+      FROM guest_tokens g
+      LEFT JOIN addresses a ON a.guest_token = g.token
+      ORDER BY g.token, a.created_at, a.id
+    `;
+    const byToken = new Map();
+    for (const row of rows) {
+      let guest = byToken.get(row.token);
+      if (!guest) {
+        guest = {
+          guest_name: row.guest_name,
+          token: row.token,
+          texted_by: row.texted_by,
+          responded: false,
+          address: null,
+          created_at: isoOrNull(row.guest_created_at),
+        };
+        byToken.set(row.token, guest);
+      }
+      if (row.id !== null) {
+        guest.responded = true;
+        guest.address = isoRow({
+          id: row.id,
+          full_name: row.full_name,
+          street: row.street,
+          unit: row.unit,
+          city: row.city,
+          state: row.state,
+          postal_code: row.postal_code,
+          country: row.country,
+          notes: row.notes,
+          guest_token: row.guest_token,
+          created_at: row.created_at,
+        });
+      }
+    }
+    const guests = [...byToken.values()].sort((a, b) => {
+      if (a.responded !== b.responded) return a.responded ? 1 : -1;
+      // Unclaimed (empty texted_by) rows sort after every named texter.
+      const whoA = a.texted_by || "\uffff";
+      const whoB = b.texted_by || "\uffff";
+      if (whoA !== whoB) return whoA < whoB ? -1 : 1;
+      return a.guest_name.localeCompare(b.guest_name);
+    });
+    return Response.json({ count: guests.length, guests });
+  } catch (err) {
+    console.error("[api] failed to list guests:", err);
     return jsonError(GENERIC_ERROR_MESSAGE, 500);
   }
 }
@@ -569,6 +661,7 @@ export function createRoutes() {
     "/api/address/validate": { GET: getAddressValidate },
     "/api/addresses": { GET: getAddresses },
     "/api/addresses.csv": { GET: getAddressesCsv },
+    "/api/guests": { GET: getGuests },
   };
 }
 
