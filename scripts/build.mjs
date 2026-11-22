@@ -3,28 +3,13 @@
 // (bun build --target=bun --dts --root . --entry-naming "[name].[ext]"
 // server/index.js --outdir dist), plus the keep-public-asset-urls plugin.
 //
-// Why the plugin exists: Bun's HTML bundler resolves root-absolute
-// subresource URLs ("/hero.webp", "/gallery/thumb/*.webp" in pages/*.html)
-// against the project root at build time — but those files live in public/
-// and are served from disk at request time by server/static.js. The URLs are
-// runtime addresses, not build-time inputs, so the bundler fails:
-//
-//   error: Could not resolve: "/hero.webp"
-//   error: Could not resolve: "/gallery/thumb/cdpXXXXX.webp"   (x110)
-//
-// No config fixes this in bun 1.4.4 (verified: no publicDir option exists,
-// --root does not change where absolute subresources resolve, and neither
-// --external nor plugin onResolve/onLoad hooks for the subresources
-// themselves apply to HTML). What HTML bundlers always leave alone is an
-// absolute https:// URL. So onLoad we temporarily rewrite src/srcset/href
-// ="/asset.ext" to https://the-davilas-public.invalid/asset.ext (a
-// reserved TLD, RFC 2606 — never a real host, never real page content),
-// the bundler passes them through verbatim, and a restore pass after the
-// build strips the marker prefix from the emitted files. Served markup
-// ends up with the source URLs intact: /hero.webp and /gallery/... stay
-// stable public URLs — no hashing, no renames, no duplicated assets —
-// which the hero markup and the gallery lightbox (data-full="/gallery/
-// *.webp") depend on.
+// Why the plugin exists: Bun's HTML bundler dies on the pages' root-absolute
+// public/ asset URLs ("Could not resolve: /hero.webp"). The mask/restore
+// pair that fixes this lives in scripts/asset-url-mask.mjs — shared with
+// server/app.js so dev/test and production keep the exact same public-URL
+// contract. The plugin masks src/srcset/href="/asset.ext" onLoad, the
+// bundler passes the marker URLs through verbatim, and the restore pass
+// below strips the marker prefix from the emitted files.
 //
 // Layout note: the CLI's --entry-naming "[name].[ext]" flattens every
 // output, but Bun.build's entryNaming option does NOT flatten HTML
@@ -45,30 +30,21 @@
 // chdir affects the manifest resolution and nothing else.
 import path from "node:path";
 import { readdir, rm } from "node:fs/promises";
+import {
+  MARKER,
+  countMaskedAssetUrls,
+  maskAssetUrls,
+  restoreAssetUrls,
+} from "./asset-url-mask.mjs";
 
 const ROOT = path.resolve(import.meta.dir, "..");
 const DIST = path.join(ROOT, "dist");
 const PAGES = path.join(ROOT, "pages");
 
-// Prefix swapped in before bundling and stripped after. ".invalid" is
-// reserved by RFC 2606, so it can never collide with a real URL.
-const MARKER = "https://the-davilas-public.invalid";
-
 // Injected verbatim at the very top of dist/index.js — before the inlined
 // module bodies and long before createApp() — so the embedded HTML manifests
 // always resolve against dist/ (see "Cwd note" below).
 const BANNER = "process.chdir(import.meta.dir);";
-
-// Root-absolute URLs with a file extension, in attributes the HTML bundler
-// resolves (src/srcset/href). Extensionless URLs (href="/gallery" — app
-// routes) and data-* attributes (the lightbox's data-full) are left alone;
-// the bundler never resolves those, so they need no masking.
-const ABSOLUTE_ASSET_URL = /\b(src|srcset|href)="(\/[^"]*\.[A-Za-z0-9]+)"/g;
-
-/** Rewrite src/srcset/href="/asset.ext" to the external marker URL. */
-function maskAbsoluteAssetUrls(html) {
-  return html.replace(ABSOLUTE_ASSET_URL, `$1="${MARKER}$2"`);
-}
 
 // Bun.build's runtime honors `dts` (the CLI maps --dts to it), but the
 // bun-types 1.4.4 BuildConfig type doesn't know the key yet, so the config
@@ -100,7 +76,7 @@ const config = {
           // from disk at runtime and never enters the build graph.
           if (!args.path.startsWith(PAGES + path.sep)) return undefined;
           const html = await Bun.file(args.path).text();
-          return { contents: maskAbsoluteAssetUrls(html), loader: "html" };
+          return { contents: maskAssetUrls(html), loader: "html" };
         });
       },
     },
@@ -144,9 +120,8 @@ let restored = 0;
 for (const file of await collectTextFiles(DIST)) {
   const text = await Bun.file(file).text();
   if (!text.includes(MARKER)) continue;
-  const fixed = text.replaceAll(MARKER, "");
-  restored += (text.length - fixed.length) / MARKER.length;
-  await Bun.write(file, fixed);
+  restored += countMaskedAssetUrls(text);
+  await Bun.write(file, restoreAssetUrls(text));
 }
 
 /* -------------------- strip the cwd banner from browser chunks ----------

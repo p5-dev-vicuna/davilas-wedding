@@ -40,3 +40,18 @@ CREATE TABLE IF NOT EXISTS addresses (
 );
 
 CREATE INDEX IF NOT EXISTS addresses_guest_token_idx ON addresses (guest_token);
+
+-- Invite-only gate for /address (migrations/002_add_guest_tokens.sql for
+-- existing databases): every personal link's token lives here, and both
+-- GET /api/address/validate and POST /api/address check against it.
+CREATE TABLE IF NOT EXISTS guest_tokens (
+  token text PRIMARY KEY,
+  guest_name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- The two personal links already texted out. Idempotent: safe to re-run.
+INSERT INTO guest_tokens (token, guest_name) VALUES
+  ('e8sakufe', 'Zach'),
+  ('h4zxhqe7', 'Kendra')
+ON CONFLICT (token) DO NOTHING;

@@ -56,6 +56,10 @@ Bun.serve({
 - **Known limitations (per docs):** no auto-discovery of API routes; no built-in SSR. Plugins for static routes go under `[serve.static]` in `bunfig.toml`.
 - Scripts convention from Bun's own guide: `dev` = `bun dev`, `build` = `bun run build` (static/production), `start` = `bun start`.
 
+## worker-gotchas
+
+- Bun.serve re-bundles HTML-import routes per request when running from source (dev/test), resolves root-absolute asset URLs (`/hero.webp`) against the project root (`Could not resolve` → 500), and IGNORES runtime `Bun.plugin` onLoad hooks for that re-bundle (they only fire for the import itself) — so server/app.js serves page source through the shared mask/restore module (scripts/asset-url-mask.mjs) for dev/test parity with prod.
+
 ## bun build --dts (verified against bun.com/reference/bun/build)
 
 - `Bun.build({ dts: true })` ≡ CLI `--dts`: writes a TypeScript declaration file (`.d.ts`) for each source file and each JS output file; **entrypoints and everything they import are type-checked first** (same as `check`). Cannot be used with `compile`.

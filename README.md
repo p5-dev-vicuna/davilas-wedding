@@ -75,8 +75,9 @@ ADMIN_KEY=a-long-random-string
 - **`DATABASE_URL`** — Neon connection string (the **pooled** endpoint — Bun's
   SQL client speaks plain TCP). Run `schema.sql` once against the
   database (`psql "$DATABASE_URL" -f schema.sql`) to create the `rsvps`,
-  `song_requests`, and `addresses` tables (existing databases: apply
-  `migrations/001_add_addresses.sql` for the addresses table alone). **Until
+  `song_requests`, `addresses`, and `guest_tokens` tables (existing databases:
+  apply `migrations/001_add_addresses.sql` and
+  `migrations/002_add_guest_tokens.sql` incrementally). **Until
   this is set, `POST /api/rsvp`, `POST /api/song`, and `POST /api/address`
   return 503 with a friendly message** (and `GET /api/songs` returns an empty
   list) — so the site can deploy before credentials exist.
@@ -92,37 +93,47 @@ ADMIN_KEY=a-long-random-string
 
 ## API
 
-| Endpoint             | Method | Auth      | Notes                                                                 |
-| -------------------- | ------ | --------- | --------------------------------------------------------------------- |
-| `/api/rsvp`          | POST   | —         | Validates server-side (party 1–10, length caps), inserts into `rsvps` |
-| `/api/song`          | POST   | —         | Validates (title/artist/name), inserts into `song_requests`           |
-| `/api/songs`         | GET    | —         | Latest 100 requests; first names only                                 |
-| `/api/rsvps`         | GET    | ADMIN_KEY | All RSVPs as JSON                                                     |
-| `/api/rsvps.csv`     | GET    | ADMIN_KEY | All RSVPs as CSV (Excel-friendly)                                     |
-| `/api/address`       | POST   | —         | Validates (required fields, length caps), inserts into `addresses`    |
-| `/api/addresses`     | GET    | ADMIN_KEY | Addresses as JSON, grouped `matched` (personal link) / `unmatched`    |
-| `/api/addresses.csv` | GET    | ADMIN_KEY | Addresses as CSV (Excel-friendly)                                     |
+| Endpoint                | Method | Auth        | Notes                                                                     |
+| ----------------------- | ------ | ----------- | ------------------------------------------------------------------------- |
+| `/api/rsvp`             | POST   | —           | Validates server-side (party 1–10, length caps), inserts into `rsvps`     |
+| `/api/song`             | POST   | —           | Validates (title/artist/name), inserts into `song_requests`               |
+| `/api/songs`            | GET    | —           | Latest 100 requests; first names only                                     |
+| `/api/rsvps`            | GET    | ADMIN_KEY   | All RSVPs as JSON                                                         |
+| `/api/rsvps.csv`        | GET    | ADMIN_KEY   | All RSVPs as CSV (Excel-friendly)                                         |
+| `/api/address/validate` | GET    | —           | `?g=<token>` → `{valid, guest_name}` — personal-link check for `/address` |
+| `/api/address`          | POST   | guest token | Requires a valid `guest_token` (personal link), validates fields, inserts |
+| `/api/addresses`        | GET    | ADMIN_KEY   | Addresses as JSON, grouped `matched` (personal link) / `unmatched`        |
+| `/api/addresses.csv`    | GET    | ADMIN_KEY   | Addresses as CSV (Excel-friendly)                                         |
 
 All endpoints are JSON with proper status codes, per-IP in-memory rate limiting
 (token bucket), and DB errors are never leaked to clients (logged server-side only).
 
 ## Pre-RSVP mailing addresses
 
-The `/address` page lets guests submit their mailing address before invitations
-go out (they'll receive a Twilio SMS with a personal link like
-`https://your-host/address?g=<token>`; the token is stored silently with the
-submission so you can tell exactly who responded).
+The `/address` page is **invite-only**: it is reachable solely through the
+personal links texted to guests (`https://your-host/address?g=<token>`) — no
+nav, footer, or home-page links point at it. Tokenless or unknown-token
+visitors get a friendly invite-only note instead of the form, and the server
+rejects their submissions with 403. Valid tokens live in the `guest_tokens`
+table (`GET /api/address/validate` checks it) and are stored with the
+submission so you can tell exactly who responded.
 
-**Generate the personal links** from a guest CSV with `name` and `phone`
-headers (`email` column optional):
+**Generate the personal links** from a names-only list — either a CSV with a
+`name` header (a `phone` column is optional and ignored — Twilio legacy) or a
+plain text file with one name per line (no header). The format is
+auto-detected:
 
 ```bash
 SITE_URL=https://your-host node scripts/import_guests.mjs guests.csv
-# → writes guest_tokens.csv: name, phone, token, link
+# → writes guest_tokens.csv: name, token, link, message (CSV only)
+
+SITE_URL=https://your-host node scripts/import_guests.mjs --sync guests.csv
+# → same CSV, plus inserts every token into guest_tokens (needs DATABASE_URL;
+#   prints the synced count — only synced tokens are accepted by /address)
 ```
 
-(`SITE_URL` may also live in `.env`.) Send each `link` to that guest via SMS.
-Unknown tokens are stored as-is — nobody has to keep the list in sync.
+(`SITE_URL` may also live in `.env`.) Text each guest their `message` — the
+ready-to-send SMS carrying their `link` — from your own phone.
 
 **Pull the results** (cross-reference against `guest_tokens.csv`):
 
@@ -132,11 +143,11 @@ curl -H "Authorization: Bearer $ADMIN_KEY" https://your-host/api/addresses.csv  
 ```
 
 **Database:** fresh Neon databases can run `schema.sql` as before. Existing
-databases (already carrying `rsvps`/`song_requests`) should apply the
-incremental migration instead:
+databases should apply the incremental migrations instead:
 
 ```bash
-psql "$DATABASE_URL" -f migrations/001_add_addresses.sql
+psql "$DATABASE_URL" -f migrations/001_add_addresses.sql     # addresses table
+psql "$DATABASE_URL" -f migrations/002_add_guest_tokens.sql  # invite-only gate + the sent tokens
 ```
 
 ## Where the couple edits things
@@ -213,8 +224,8 @@ scripts/            run-e2e.mjs (E2E runner), import_guests.mjs (personal /addre
                     db-check.mjs (live DB counts/cleanup), shoot.mjs, preview-url.mjs
 bunfig.toml         bun test/lint/fmt configuration
 tsconfig.json       bun check (typecheck) configuration
-schema.sql          Neon Postgres tables (rsvps, song_requests, addresses)
-migrations/         incremental schema changes for existing databases (001_add_addresses.sql)
+schema.sql          Neon Postgres tables (rsvps, song_requests, addresses, guest_tokens)
+migrations/         incremental schema changes for existing databases (001 addresses, 002 guest tokens)
 .githooks/          pre-commit hook (activate: git config core.hooksPath .githooks)
 BUN_REWRITE_REPORT.md  what changed vs main, verification output, canary workarounds
 ```

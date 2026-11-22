@@ -2,6 +2,7 @@
 // bundler), API endpoints, and a fetch fallback for public/ assets + the
 // styled 404. createApp() is exported separately from index.js so unit tests
 // can boot the whole server on an ephemeral port and drive it with real HTTP.
+import path from "node:path";
 import crypto from "node:crypto";
 import indexPage from "../pages/index.html";
 import aboutPage from "../pages/about.html";
@@ -22,6 +23,7 @@ import { validateAddress, validateRsvp, validateSong } from "./validate.js";
 import { createRateLimiter } from "./rate-limit.js";
 import { serve404, servePublicFile } from "./static.js";
 import { firstName } from "../shared/songs.js";
+import { restoreAssetUrls } from "../scripts/asset-url-mask.mjs";
 
 /* ---------------------------- rate limiting ---------------------------- */
 // In-memory token bucket: 60 requests/minute/IP burst — plenty for guests,
@@ -53,6 +55,10 @@ const NOT_CONFIGURED_MESSAGE =
   "Submissions aren't available just yet — please try again soon.";
 const GENERIC_ERROR_MESSAGE =
   "Something went wrong on our end — please try again in a moment.";
+const ADDRESS_INVITE_ONLY_MESSAGE =
+  "This page is for guests with a personal link — check your text from " +
+  "Kendra & Nando. Didn't get one? Your invitation is on its way — no " +
+  "need to do anything yet.";
 
 async function jsonBody(req) {
   try {
@@ -196,6 +202,40 @@ async function postSong(req, server) {
   }
 }
 
+/* ---------------------- invite-only address gate ------------------------ */
+
+/**
+ * GET /api/address/validate?g=<token> — public. Tells the /address page
+ * whether the personal-link token is real and, if so, which guest it
+ * belongs to (so the page can greet them by name). Fail-closed: missing
+ * token, unknown token, unconfigured DB, or a DB error all mean
+ * { valid: false } — the page then shows the invite-only state.
+ */
+async function getAddressValidate(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const token =
+    new URL(req.url).searchParams.get("g")?.trim().slice(0, 64) ?? "";
+  if (!token) return Response.json({ valid: false });
+
+  const db = getDb();
+  if (!db) return Response.json({ valid: false });
+
+  try {
+    const rows = await db`
+      SELECT guest_name FROM guest_tokens WHERE token = ${token} LIMIT 1
+    `;
+    const row = rows[0];
+    return Response.json(
+      row ? { valid: true, guest_name: row.guest_name } : { valid: false },
+    );
+  } catch (err) {
+    console.error("[api] failed to validate guest token:", err); // server log only
+    return Response.json({ valid: false });
+  }
+}
+
 async function postAddress(req, server) {
   const denial = rateLimitDenial(req, server);
   if (denial) return denial;
@@ -213,6 +253,15 @@ async function postAddress(req, server) {
     );
   }
 
+  // Invite-only gate: a submission is only accepted through a personal
+  // link. No token → 403 before anything else (fail closed).
+  if (!result.value.guest_token) {
+    return Response.json(
+      { ok: false, error: ADDRESS_INVITE_ONLY_MESSAGE },
+      { status: 403 },
+    );
+  }
+
   const db = getDb();
   if (!db) {
     console.warn(
@@ -223,10 +272,21 @@ async function postAddress(req, server) {
 
   try {
     const v = result.value;
-    await db`
+    // JOIN check: the row only lands if the token exists in guest_tokens.
+    // (Atomic — no window between lookup and insert.)
+    const inserted = await db`
       INSERT INTO addresses (full_name, street, unit, city, state, postal_code, country, notes, guest_token)
-      VALUES (${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, ${v.guest_token})
+      SELECT ${v.full_name}, ${v.street}, ${v.unit}, ${v.city}, ${v.state}, ${v.postal_code}, ${v.country}, ${v.notes}, t.token
+      FROM guest_tokens t
+      WHERE t.token = ${v.guest_token}
+      RETURNING id
     `;
+    if (inserted.length === 0) {
+      return Response.json(
+        { ok: false, error: ADDRESS_INVITE_ONLY_MESSAGE },
+        { status: 403 },
+      );
+    }
     return Response.json(
       { ok: true, message: "Sealed and delivered — you're on the list. 💌" },
       { status: 201 },
@@ -429,26 +489,76 @@ async function getAddressesCsv(req, server) {
   }
 }
 
+/* ----------------------------- HTML page routes -------------------------- */
+// The same `import x from "../pages/x.html"` means two different things:
+//
+//   production (dist/): the build inlines a prebuilt asset manifest
+//     ({ index: "./index.html", files: [...] }) and Bun.serve serves it
+//     with zero runtime bundling — this is the path that ships.
+//
+//   dev/test (running from source): the import yields a lazy placeholder
+//     that Bun.serve re-bundles on request — and on this canary that lazy
+//     bundling dies on the pages' root-absolute asset URLs:
+//       error: Could not resolve: "/hero.webp"
+//     exactly what scripts/build.mjs masks at build time. Runtime plugins
+//     cannot intercept it (verified on bun 1.4.4-canary: a Bun.plugin
+//     onLoad fires for the import itself, but the per-request re-bundle
+//     re-reads the file from disk and never consults it), so from source
+//     the page markup is served directly instead: read the exact file the
+//     import points at, apply the shared restore pass (the same public-URL
+//     contract the production build guarantees — no marker URLs can ever
+//     reach a browser), and rewrite "../public/x" to the "/x" runtime URL
+//     it denotes — public/ is already served whole by server/static.js,
+//     so styles, favicon, and photos all resolve.
+//
+// Production is untouched: the manifest check below hands Bun.serve the
+// prebuilt bundle exactly as before.
+
+const PAGES_DIR = path.join(import.meta.dir, "..", "pages");
+
+/**
+ * Route value for one page import: the prebuilt manifest when running from
+ * dist/, else a GET handler serving the page source with public URLs kept
+ * verbatim (mask/restore parity with the production build).
+ */
+function pageRoute(page, file) {
+  // Prebuilt manifests carry their file list; source-mode placeholders
+  // don't (they only expose an `index` source path on their prototype).
+  if (Array.isArray(page?.files)) return page;
+  return {
+    GET: async () => {
+      const html = restoreAssetUrls(
+        await Bun.file(path.join(PAGES_DIR, file)).text(),
+      );
+      const markup = html.replaceAll('="../public/', '="/');
+      return new Response(markup, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    },
+  };
+}
+
 /* ------------------------------ route table ----------------------------- */
 
 export function createRoutes() {
   return {
     // Pages — HTML imports; Bun bundles them (dev/HMR on demand, pre-built
-    // manifest in production).
-    "/": indexPage,
-    "/about": aboutPage,
-    "/rsvp": rsvpPage,
-    "/address": addressPage,
-    "/schedule": schedulePage,
-    "/travel": travelPage,
-    "/details": detailsPage,
-    "/wedding-party": weddingPartyPage,
-    "/gallery": galleryPage,
-    "/faq": faqPage,
-    "/registry": registryPage,
-    "/songs": songsPage,
-    "/privacy": privacyPage,
-    "/terms": termsPage,
+    // manifest in production; straight from source when unbundled — see
+    // pageRoute above).
+    "/": pageRoute(indexPage, "index.html"),
+    "/about": pageRoute(aboutPage, "about.html"),
+    "/rsvp": pageRoute(rsvpPage, "rsvp.html"),
+    "/address": pageRoute(addressPage, "address.html"),
+    "/schedule": pageRoute(schedulePage, "schedule.html"),
+    "/travel": pageRoute(travelPage, "travel.html"),
+    "/details": pageRoute(detailsPage, "details.html"),
+    "/wedding-party": pageRoute(weddingPartyPage, "wedding-party.html"),
+    "/gallery": pageRoute(galleryPage, "gallery.html"),
+    "/faq": pageRoute(faqPage, "faq.html"),
+    "/registry": pageRoute(registryPage, "registry.html"),
+    "/songs": pageRoute(songsPage, "songs.html"),
+    "/privacy": pageRoute(privacyPage, "privacy.html"),
+    "/terms": pageRoute(termsPage, "terms.html"),
     // API — HTTP method handlers inline.
     "/api/rsvp": { POST: postRsvp },
     "/api/song": { POST: postSong },
@@ -456,6 +566,7 @@ export function createRoutes() {
     "/api/rsvps": { GET: getRsvps },
     "/api/rsvps.csv": { GET: getRsvpsCsv },
     "/api/address": { POST: postAddress },
+    "/api/address/validate": { GET: getAddressValidate },
     "/api/addresses": { GET: getAddresses },
     "/api/addresses.csv": { GET: getAddressesCsv },
   };
