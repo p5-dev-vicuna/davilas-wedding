@@ -90,10 +90,12 @@ test.describe('Mailing address (invite-only)', () => {
 
     const invite = page.getByTestId('address-invite-only')
     await expect(invite).toBeVisible()
-    await expect(invite).toContainText(/invited guests/i)
-    await expect(invite).toContainText(/check your text/i)
-    await expect(invite).toContainText(/personal link/i)
-    await expect(invite).toContainText(/invitation is on its way/i)
+    // \s+ everywhere: bun fmt rewraps this paragraph, so fragments must
+    // survive any line breaking.
+    await expect(invite).toContainText(/invited\s+guests/i)
+    await expect(invite).toContainText(/check\s+your\s+text/i)
+    await expect(invite).toContainText(/personal\s+link/i)
+    await expect(invite).toContainText(/invitation\s+is\s+on\s+its\s+way/i)
     await expect(page.getByTestId('address-form')).toBeHidden()
     await expect(page.getByTestId('address-success')).toBeHidden()
   })
