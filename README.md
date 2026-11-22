@@ -220,6 +220,6 @@ BUN_REWRITE_REPORT.md  what changed vs main, verification output, canary workaro
 ```
 
 **Deployed from this branch** — pushes to `main` auto-deploy the container
-build (`Dockerfile.bun`) to the live site at `davilas.parallel5.com`; every
+build (`Dockerfile.bun`) to the live site at `thedavilaswedding.parallel5.com`; every
 other branch gets the preview URL described above. See
 `BUN_REWRITE_REPORT.md` for the full Astro → Bun conversion notes.

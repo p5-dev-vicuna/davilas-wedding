@@ -1,3 +1,25 @@
+# Twilio address blast — ABANDONED (2026-11-22)
+
+This plan is dead. Do **not** build the Twilio blast script or follow the setup
+steps below. Summary of the decision (see Fernando's update, 2026-11-22):
+
+- The A2P/10DLC campaign was **rejected twice**: (1) use-case mismatch — personal /
+  peer-to-peer texting is not what 10DLC is for; (2) opt-in evidence — verbal
+  consent needs recorded proof per guest, which is as much work as texting
+  everyone directly.
+- **New flow instead:** Fernando builds `guests.csv` (kept OUT of this repo — it
+  is public), runs `node scripts/import_guests.mjs guests.csv` ONCE with
+  `SITE_URL=https://thedavilaswedding.parallel5.com` to generate personal links
+  (`guest_tokens.csv` — also kept out of the repo), then Kendra & Nando text each
+  guest their link individually from their own phones. Replies are tracked via
+  `/api/addresses.csv` (admin key) cross-referenced against `guest_tokens.csv`;
+  follow-ups reuse the SAME link.
+- Never re-run the import for already-sent guests — re-running mints new tokens
+  that won't match links already sent.
+- `/privacy` and `/terms` pages stay live (useful, harmless).
+
+## Original Twilio setup checklist (kept for reference only — OBSOLETE)
+
 # Twilio setup — address text blast (Kendra & Nando)
 
 Checklist for Fernando to work through tomorrow. Nothing here blocks the website side — the `/address` page, database table, guest-token import script, and CSV export are already built; this covers the texting side only.
