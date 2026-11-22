@@ -48,7 +48,21 @@ describe("API without a database configured", () => {
     expect(data.errors.party_size).toBeTruthy();
   });
 
-  it("returns 503 for a VALID RSVP when DATABASE_URL is unset", async () => {
+  it("returns 403 for a VALID RSVP without a guest token (invite-only)", async () => {
+    // RSVPs arrive only via the QR code on a physical invitation; the
+    // gate fires before the DB layer, so it holds even with no database.
+    const res = await postJson("/api/rsvp", {
+      full_name: "Test Guest",
+      attending: true,
+      party_size: 2,
+    });
+    expect(res.status).toBe(403);
+    const data = await res.json();
+    expect(data.ok).toBe(false);
+    expect(data.error).toMatch(/by invitation/i);
+  });
+
+  it("returns 503 for a VALID RSVP (with a token) when DATABASE_URL is unset", async () => {
     const res = await postJson("/api/rsvp", {
       full_name: "Test Guest",
       attending: true,
@@ -56,6 +70,7 @@ describe("API without a database configured", () => {
       allergies: "gluten-free",
       song_request: "At Last",
       notes: "so excited",
+      guest_token: "e8sakufe",
     });
     expect(res.status).toBe(503);
     const data = await res.json();

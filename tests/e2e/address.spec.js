@@ -163,11 +163,12 @@ test.describe('Mailing address (invite-only)', () => {
     await page.goto('/rsvp')
     await expect(page.getByTestId('rsvp-address-link')).toHaveCount(0)
 
-    // /address itself still serves (invite-only state) and keeps its RSVP teaser.
+    // /address itself still serves (invite-only state). Its RSVP teaser is
+    // gone too — RSVP is QR-gated (invitation-only), so nothing links to it.
     await page.goto('/address')
     await expect(page.getByTestId('address-invite-only')).toBeVisible()
     await expect(page.getByTestId('nav-address')).toHaveCount(0)
     await expect(page.getByTestId('footer-address-link')).toHaveCount(0)
-    await expect(page.getByTestId('address-rsvp-link')).toHaveAttribute('href', '/rsvp')
+    await expect(page.getByTestId('address-rsvp-link')).toHaveCount(0)
   })
 })

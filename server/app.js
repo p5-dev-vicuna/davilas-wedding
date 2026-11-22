@@ -59,6 +59,9 @@ const ADDRESS_INVITE_ONLY_MESSAGE =
   "This page is for guests with a personal link — check your text from " +
   "Kendra & Nando. Didn't get one? Your invitation is on its way — no " +
   "need to do anything yet.";
+const RSVP_INVITE_ONLY_MESSAGE =
+  "RSVP is by invitation — a QR code on your invitation will bring you " +
+  "here. Didn't get yours? It means your invitation is still on its way.";
 
 async function jsonBody(req) {
   try {
@@ -137,6 +140,16 @@ async function postRsvp(req, server) {
     );
   }
 
+  // Invite-only gate: an RSVP is only accepted through the QR code on
+  // the guest's physical invitation. No token → 403 before anything
+  // else (fail closed).
+  if (!result.value.guest_token) {
+    return Response.json(
+      { ok: false, error: RSVP_INVITE_ONLY_MESSAGE },
+      { status: 403 },
+    );
+  }
+
   const db = getDb();
   if (!db) {
     console.warn(
@@ -147,10 +160,22 @@ async function postRsvp(req, server) {
 
   try {
     const v = result.value;
-    await db`
+    // JOIN check: the row only lands if the token exists in guest_tokens.
+    // (Atomic — no window between lookup and insert; same pattern as
+    // POST /api/address.)
+    const inserted = await db`
       INSERT INTO rsvps (full_name, attending, party_size, allergies, song_request, notes)
-      VALUES (${v.full_name}, ${v.attending}, ${v.party_size}, ${v.allergies}, ${v.song_request}, ${v.notes})
+      SELECT ${v.full_name}, ${v.attending}, ${v.party_size}, ${v.allergies}, ${v.song_request}, ${v.notes}
+      FROM guest_tokens t
+      WHERE t.token = ${v.guest_token}
+      RETURNING id
     `;
+    if (inserted.length === 0) {
+      return Response.json(
+        { ok: false, error: RSVP_INVITE_ONLY_MESSAGE },
+        { status: 403 },
+      );
+    }
     return Response.json(
       { ok: true, message: "Thank you — your RSVP is in!" },
       { status: 201 },
@@ -199,6 +224,41 @@ async function postSong(req, server) {
   } catch (err) {
     console.error("[api] failed to insert song request:", err);
     return jsonError(GENERIC_ERROR_MESSAGE, 500);
+  }
+}
+
+/* ---------------------- invite-only RSVP gate ------------------------ */
+
+/**
+ * GET /api/rsvp/validate?g=<token> — public. Tells the /rsvp page whether
+ * the QR-code token from the guest's physical invitation is real and, if
+ * so, which guest it belongs to (so the page can greet them by name).
+ * Fail-closed: missing token, unknown token, unconfigured DB, or a DB
+ * error all mean { valid: false } — the page then shows the invite-only
+ * state. Same contract as GET /api/address/validate.
+ */
+async function getRsvpValidate(req, server) {
+  const denial = rateLimitDenial(req, server);
+  if (denial) return denial;
+
+  const token =
+    new URL(req.url).searchParams.get("g")?.trim().slice(0, 64) ?? "";
+  if (!token) return Response.json({ valid: false });
+
+  const db = getDb();
+  if (!db) return Response.json({ valid: false });
+
+  try {
+    const rows = await db`
+      SELECT guest_name FROM guest_tokens WHERE token = ${token} LIMIT 1
+    `;
+    const row = rows[0];
+    return Response.json(
+      row ? { valid: true, guest_name: row.guest_name } : { valid: false },
+    );
+  } catch (err) {
+    console.error("[api] failed to validate guest token:", err); // server log only
+    return Response.json({ valid: false });
   }
 }
 
@@ -653,6 +713,7 @@ export function createRoutes() {
     "/terms": pageRoute(termsPage, "terms.html"),
     // API — HTTP method handlers inline.
     "/api/rsvp": { POST: postRsvp },
+    "/api/rsvp/validate": { GET: getRsvpValidate },
     "/api/song": { POST: postSong },
     "/api/songs": { GET: getSongs },
     "/api/rsvps": { GET: getRsvps },

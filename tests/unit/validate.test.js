@@ -26,7 +26,21 @@ describe("validateRsvp", () => {
       allergies: "vegetarian",
       song_request: "At Last",
       notes: null,
+      guest_token: null,
     });
+  });
+
+  it("passes the invitation token through, trimmed and capped at 64 chars", () => {
+    expect(
+      validateRsvp({ ...validRsvp, guest_token: " e8sakufe " }).value
+        .guest_token,
+    ).toBe("e8sakufe");
+    expect(
+      validateRsvp({
+        ...validRsvp,
+        guest_token: "t".repeat(RSVP_LIMITS.token + 1),
+      }).errors.guest_token,
+    ).toBeTruthy();
   });
 
   it("rejects non-object bodies", () => {

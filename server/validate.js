@@ -8,6 +8,7 @@ export const RSVP_LIMITS = {
   notes: 1000,
   partyMin: 1,
   partyMax: 10,
+  token: 64,
 };
 export const SONG_LIMITS = { title: 200, artist: 200, name: 120 };
 export const ADDRESS_LIMITS = {
@@ -31,8 +32,10 @@ function isPlainObject(value) {
 }
 
 /**
- * Validate an RSVP payload.
- * @returns {{ ok: true, value: { full_name: string, attending: boolean, party_size: number, allergies: string | null, song_request: string | null, notes: string | null } } | { ok: false, errors: Record<string, string> }}
+ * Validate an RSVP payload. `guest_token` is the silent ?g=<token> from the
+ * QR code on the guest's physical invitation — required by POST /api/rsvp
+ * (which 403s when it's missing), validated for shape here.
+ * @returns {{ ok: true, value: { full_name: string, attending: boolean, party_size: number, allergies: string | null, song_request: string | null, notes: string | null, guest_token: string | null } } | { ok: false, errors: Record<string, string> }}
  */
 export function validateRsvp(input) {
   if (!isPlainObject(input)) {
@@ -86,17 +89,24 @@ export function validateRsvp(input) {
     errors.notes = `Please keep notes under ${RSVP_LIMITS.notes} characters.`;
   }
 
+  const guest_token = str(input.guest_token);
+  if (guest_token && guest_token.length > RSVP_LIMITS.token) {
+    errors.guest_token =
+      "Please scan the QR code on your invitation and try again.";
+  }
+
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
   // The guards above established these are non-null/non-empty; narrow for TS.
   const value =
-    /** @type {{ full_name: string, attending: boolean, party_size: number, allergies: string | null, song_request: string | null, notes: string | null }} */ ({
+    /** @type {{ full_name: string, attending: boolean, party_size: number, allergies: string | null, song_request: string | null, notes: string | null, guest_token: string | null }} */ ({
       full_name,
       attending,
       party_size,
       allergies: allergies || null,
       song_request: song_request || null,
       notes: notes || null,
+      guest_token: guest_token || null,
     });
   return { ok: true, value };
 }

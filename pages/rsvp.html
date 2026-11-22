@@ -12,6 +12,12 @@
       name="description"
       content="Let Kendra & Nando know if you'll be joining them on October 23, 2027 in Rockmart, Georgia."
     />
+    <!-- QR-gated: reachable ONLY via the ?g=<token> link behind the QR code
+          printed on each physical invitation (that mechanism arrives in
+          2027). No nav/footer/home/header links anywhere; tokenless
+          visitors see a warm invite-only state (validated client-side on
+          load, enforced server-side on submit). -->
+    <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -93,8 +99,9 @@
           </p>
         </header>
 
-        <!-- Warm callout, deliberately placed DIRECTLY above the form fields. -->
-        <aside class="callout" data-testid="rsvp-guest-note">
+        <!-- Warm callout, deliberately placed DIRECTLY above the form fields
+             (shown only alongside the form once a token validates). -->
+        <aside class="callout" data-testid="rsvp-guest-note" hidden>
           <p class="script callout-title">a quick note on guests</p>
           <p>
             Invitations are for you only unless we've personally told you
@@ -103,7 +110,27 @@
           </p>
         </aside>
 
-        <form id="rsvp-form" class="form" novalidate data-testid="rsvp-form">
+        <!-- Invite-only state: the default for tokenless/unknown-token
+             visitors — the QR code on their invitation isn't here yet. A
+             valid token swaps this out for the form. -->
+        <div class="callout" data-testid="rsvp-invite-only">
+          <p class="script callout-title">rsvp by invitation</p>
+          <p>
+            A QR code on your invitation will bring you here. Didn't get yours?
+            It means your invitation is still on its way.
+          </p>
+        </div>
+
+        <form
+          id="rsvp-form"
+          class="form"
+          novalidate
+          hidden
+          data-testid="rsvp-form"
+        >
+          <!-- The invitation's QR token rides along invisibly (set by the
+               gate script below once the server validates it). -->
+          <input type="hidden" name="guest_token" value="" />
           <div class="field">
             <label for="rsvp-name">Full name</label>
             <input
@@ -308,6 +335,66 @@
         '[data-testid="rsvp-success-text"]',
       );
 
+      // Invite-only gate: the form only appears for a valid token
+      // (?g=<token> — the QR code on each physical invitation). On load we
+      // ask the server to validate it; anything else (missing/unknown
+      // token, fetch failure, no JS) leaves the warm invite-only block in
+      // place.
+      const inviteOnly = document.querySelector(
+        '[data-testid="rsvp-invite-only"]',
+      );
+      const guestNote = document.querySelector(
+        '[data-testid="rsvp-guest-note"]',
+      );
+      const heading = document.querySelector('[data-testid="rsvp-heading"]');
+      const tokenInput = form.elements.namedItem("guest_token");
+      const token =
+        new URLSearchParams(window.location.search)
+          .get("g")
+          ?.trim()
+          .slice(0, 64) ?? "";
+
+      function personalizeHeading(guestName) {
+        if (!heading) return;
+        heading.textContent = "";
+        heading.append("RSVP, ");
+        const nameSpan = document.createElement("span");
+        nameSpan.setAttribute("data-testid", "rsvp-guest-name");
+        nameSpan.textContent = guestName; // textContent — never innerHTML
+        heading.appendChild(nameSpan);
+      }
+
+      function showInviteOnly() {
+        if (inviteOnly) inviteOnly.hidden = false;
+        guestNote.hidden = true;
+        form.hidden = true;
+        inviteOnly?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      (async () => {
+        if (!token) {
+          showInviteOnly();
+          return;
+        }
+        try {
+          const res = await fetch(
+            `/api/rsvp/validate?g=${encodeURIComponent(token)}`,
+          );
+          const data = res.ok ? await res.json().catch(() => null) : null;
+          if (data?.valid) {
+            tokenInput.value = token;
+            personalizeHeading(data.guest_name ?? "friend");
+            inviteOnly.hidden = true;
+            guestNote.hidden = false;
+            form.hidden = false;
+          } else {
+            showInviteOnly();
+          }
+        } catch {
+          showInviteOnly(); // fail closed — the server checks again on submit
+        }
+      })();
+
       // server field name -> testid infix used on this page
       const errorMap = {
         full_name: "name",
@@ -427,6 +514,7 @@
               allergies: allergies.trim(),
               song_request: song.trim(),
               notes: notes.trim(),
+              guest_token: tokenInput.value || null,
             }),
           });
 
@@ -459,6 +547,14 @@
             setFormError(
               "Submissions aren't available just yet — please try again soon.",
             );
+            return;
+          }
+
+          if (res.status === 403) {
+            // Server-side gate: not a valid invitation token. Swap the
+            // form for the invite-only state — no retry loop for a
+            // rejected guest.
+            showInviteOnly();
             return;
           }
 
