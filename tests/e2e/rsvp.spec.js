@@ -90,7 +90,125 @@ test.describe('RSVP (invite-only)', () => {
     await expect(page.getByTestId('rsvp-success-text')).toContainText(/miss you/i)
   })
 
+  test('valid token: requests-so-far list renders below the form, seeded via POST /api/song and deduped', async ({ page }) => {
+    await mockValidate(page, true, 'Zach')
+
+    // Stateful mock standing in for the database (the pattern the old songs
+    // spec used): POST /api/song appends a row, GET /api/songs serves them
+    // in the server's exact response shape (first-names-only, like
+    // getSongs' privacy transform).
+    const requests = []
+    await page.route('**/api/song', (route) => {
+      const body = route.request().postDataJSON()
+      requests.push({
+        title: body.title,
+        artist: body.artist,
+        requestedBy: String(body.requested_by ?? '').trim().split(/\s+/)[0],
+        createdAt: new Date(Date.now() + requests.length).toISOString(),
+      })
+      return route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, message: 'Thank you — the DJ\u2019s notebook grows!' }),
+      })
+    })
+    await page.route('**/api/songs', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ songs: requests }),
+      })
+    )
+
+    // Seed via POST /api/song on the test server: the same song twice in
+    // different casing/whitespace (must dedupe) plus one distinct song.
+    // This page has NO song form (requests ride in the RSVP), so the seed
+    // POSTs run on / first — before the page under test loads.
+    await page.goto('/')
+    await page.evaluate(async () => {
+      const post = (title, artist, requested_by) =>
+        fetch('/api/song', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ title, artist, requested_by }),
+        })
+      await post('At Last', 'Etta James', 'Kendra Davila')
+      await post(' at LAST ', ' etta james ', 'Nando Davila')
+      await post('Brown Eyed Girl', 'Van Morrison', 'Aunt Bee')
+    })
+    expect(requests).toHaveLength(3)
+
+    await page.goto('/rsvp?g=e8sakufe')
+
+    const section = page.getByTestId('rsvp-requests-list')
+    await expect(section).toBeVisible()
+    await expect(page.getByTestId('rsvp-requests-loading')).toBeHidden()
+    await expect(page.getByTestId('rsvp-requests-count')).toHaveText(
+      '3 requests so far · 2 songs'
+    )
+    await expect(page.getByTestId('rsvp-requests-empty')).toBeHidden()
+
+    // Deduped by lowercase title+artist: ONE "At Last" row with ×2…
+    const atLast = page.getByTestId('song-item').filter({ hasText: /at last/i })
+    await expect(atLast).toHaveCount(1)
+    await expect(atLast).toContainText('At Last — Etta James')
+    await expect(atLast.getByTestId('song-count')).toHaveText('×2')
+    // …credited to the most recent requester, first-names-only.
+    await expect(atLast).toContainText('first requested by Nando')
+    // …plus one singleton.
+    await expect(page.getByTestId('song-item')).toHaveCount(2)
+    await expect(
+      page.getByTestId('song-item').filter({ hasText: /brown eyed girl/i })
+    ).toContainText('×1')
+
+    // The list sits below the RSVP form.
+    const belowForm = await page.evaluate(() => {
+      const form = document.getElementById('rsvp-form')
+      const list = document.querySelector('[data-testid="rsvp-requests-list"]')
+      return !!(
+        form &&
+        list &&
+        form.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING
+      )
+    })
+    expect(belowForm).toBe(true)
+  })
+
+  test('valid token + no requests yet: section shows the gentle empty state', async ({ page }) => {
+    await mockValidate(page, true, 'Zach')
+    await page.route('**/api/songs', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ songs: [] }),
+      })
+    )
+
+    await page.goto('/rsvp?g=e8sakufe')
+
+    await expect(page.getByTestId('rsvp-requests-list')).toBeVisible()
+    await expect(page.getByTestId('rsvp-requests-empty')).toBeVisible()
+    await expect(page.getByTestId('rsvp-requests-empty')).toContainText(
+      /nothing yet/i
+    )
+    await expect(page.getByTestId('rsvp-requests-count')).toHaveText(
+      '0 requests so far · 0 songs'
+    )
+    await expect(page.getByTestId('song-item')).toHaveCount(0)
+  })
+
   test('tokenless visitors get the invite-only state, not the form', async ({ page }) => {
+    // Tripwire: the requests list must never load for tokenless visitors.
+    let songsCalls = 0
+    await page.route('**/api/songs', (route) => {
+      songsCalls += 1
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ songs: [] }),
+      })
+    })
+
     await page.goto('/rsvp')
 
     const invite = page.getByTestId('rsvp-invite-only')
@@ -103,6 +221,9 @@ test.describe('RSVP (invite-only)', () => {
     await expect(page.getByTestId('rsvp-form')).toBeHidden()
     await expect(page.getByTestId('rsvp-guest-note')).toBeHidden()
     await expect(page.getByTestId('rsvp-success')).toBeHidden()
+    // Neither form NOR requests-so-far list — and no /api/songs traffic.
+    await expect(page.getByTestId('rsvp-requests-list')).toBeHidden()
+    expect(songsCalls).toBe(0)
   })
 
   test('unknown token gets the invite-only state too', async ({ page }) => {
@@ -112,6 +233,7 @@ test.describe('RSVP (invite-only)', () => {
 
     await expect(page.getByTestId('rsvp-invite-only')).toBeVisible()
     await expect(page.getByTestId('rsvp-form')).toBeHidden()
+    await expect(page.getByTestId('rsvp-requests-list')).toBeHidden()
   })
 
   test('a server 403 swaps the form for the invite-only state', async ({ page }) => {

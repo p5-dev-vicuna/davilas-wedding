@@ -262,6 +262,32 @@
           <span class="divider-glyph">❦</span>
           <span class="divider-rule"></span>
         </div>
+
+        <!-- Requests so far — the deduped song-request aggregate that used
+             to live on the standalone /songs page. Like the form above, it
+             appears only once the server validates the guest token
+             (tokenless/unknown-token visitors see neither). List logic
+             (fetch + dedupe) lives in ./scripts/rsvp-songs.js. -->
+        <section
+          data-testid="rsvp-requests-list"
+          aria-label="Requests so far"
+          hidden
+        >
+          <h2 class="section-title section-subtitle">Requests so far</h2>
+          <p class="songs-summary" data-testid="rsvp-requests-count"></p>
+          <p class="songs-loading" data-testid="rsvp-requests-loading">
+            Loading requests…
+          </p>
+          <p class="songs-empty" data-testid="rsvp-requests-empty" hidden>
+            Nothing yet — add a song to your RSVP above and get this party
+            started!
+          </p>
+          <ul
+            class="songs-list"
+            data-testid="rsvp-requests-items"
+            aria-live="polite"
+          ></ul>
+        </section>
       </section>
     </main>
 
@@ -347,6 +373,9 @@
         '[data-testid="rsvp-guest-note"]',
       );
       const heading = document.querySelector('[data-testid="rsvp-heading"]');
+      const requestsSection = document.querySelector(
+        '[data-testid="rsvp-requests-list"]',
+      );
       const tokenInput = form.elements.namedItem("guest_token");
       const token =
         new URLSearchParams(window.location.search)
@@ -368,6 +397,9 @@
         if (inviteOnly) inviteOnly.hidden = false;
         guestNote.hidden = true;
         form.hidden = true;
+        // The requests list is for validated guests only — it goes too.
+        document.documentElement.removeAttribute("data-rsvp-guest");
+        if (requestsSection) requestsSection.hidden = true;
         inviteOnly?.scrollIntoView({ behavior: "smooth", block: "center" });
       }
 
@@ -387,6 +419,14 @@
             inviteOnly.hidden = true;
             guestNote.hidden = false;
             form.hidden = false;
+            // Signal the requests module (./scripts/rsvp-songs.js) that the
+            // guest is validated, so it loads the "Requests so far" list
+            // below the form. Attribute + event together close the
+            // load-order race: the module checks the attribute first, then
+            // listens — whichever runs last still sees the signal exactly
+            // once.
+            document.documentElement.setAttribute("data-rsvp-guest", "");
+            document.dispatchEvent(new CustomEvent("rsvp:guest-validated"));
           } else {
             showInviteOnly();
           }
@@ -571,5 +611,10 @@
         }
       });
     </script>
+
+    <!-- Requests-so-far list logic (bundled by Bun), sharing the dedupe/sort
+         implementation in ../../shared/songs.js with the server. Fetches
+         only for validated guests — see the gate script above. -->
+    <script type="module" src="./scripts/rsvp-songs.js"></script>
   </body>
 </html>
