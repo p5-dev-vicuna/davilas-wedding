@@ -164,9 +164,14 @@ const checks = [
     "gallery.html lost the thumb URLs",
   ],
   [
-    home.includes(
-      'property="og:image" content="https://thedavilaswedding.parallel5.com/og/home.png"',
-    ),
+    // Prettier wraps long <meta> attributes across lines; flatten whitespace
+    // so this checks what it exists to check (the bundler rewriting meta
+    // content), not the page's line wrapping.
+    home
+      .replace(/\s+/g, " ")
+      .includes(
+        'property="og:image" content="https://thedavilaswedding.parallel5.com/og/home.png"',
+      ),
     "index.html lost its og:image meta — did the bundler start rewriting meta content?",
   ],
   [home.includes('href="/favicon.svg"'), 'index.html lost href="/favicon.svg"'],
