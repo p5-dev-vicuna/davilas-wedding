@@ -973,6 +973,11 @@ main p {
   margin-bottom: 0.5rem;
 }
 
+.note-box .note-subtitle {
+  font-size: 1.3rem;
+  margin-bottom: 0.8rem;
+}
+
 /* ----- Forms ----- */
 .form {
   margin-bottom: 2rem;
