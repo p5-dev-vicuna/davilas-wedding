@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "BUN_DEV=1 bun server/index.js",
     "build": "bun scripts/build.mjs",
+    "gen:og": "bun scripts/generate-og.mjs",
     "start": "cd dist && bun index.js",
     "typecheck": "bun check",
     "lint": "bun lint --no-script",

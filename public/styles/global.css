@@ -21,6 +21,12 @@
   --wash-2: #6e7b60; /* W2 watercolor washes — lighter sage */
   --white: #fdfcf8;
   --rust: #8a3b2e; /* error accents — dark enough to read on cream */
+  /* Placeholder text on form inputs — a muted sage-tinted gray, NOT
+     --sage: the old value (6.3:1 on the white inputs) was dark enough
+     that phone users read placeholders as already-filled-in values.
+     ~2.9:1 on --white / ~2.7:1 on --cream: clearly lighter than entered
+     --ink text (~12:1) while still legible as a prompt. */
+  --placeholder-ink: #8f987e;
 
   --font-display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
   --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
@@ -1039,8 +1045,12 @@ textarea {
   padding: 0.68rem 0.85rem;
 }
 
-::placeholder {
-  color: var(--sage); /* 6.3:1 on the input white — the UA default reads 4.49:1 */
+/* Placeholders are prompts, not content. Scoped to .placeholder-muted
+   forms (the address + RSVP forms) so the hook is explicit and testable;
+   entered values keep --ink. */
+.placeholder-muted input::placeholder,
+.placeholder-muted textarea::placeholder {
+  color: var(--placeholder-ink);
   opacity: 1;
 }
 
@@ -1116,6 +1126,57 @@ textarea {
 .script-accent {
   font-size: clamp(1.5rem, 4vw, 1.9rem);
   margin-bottom: 0.2rem;
+}
+
+/* ----- State combobox (address form) ----- */
+.state-combobox {
+  position: relative; /* the dropdown anchors to the field */
+}
+
+.state-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 150; /* above the sticky header (100), below the lightbox (300) */
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--white);
+  border: 1px solid var(--gold-soft);
+  box-shadow: var(--shadow-soft);
+  max-height: min(264px, 42vh);
+  overflow-y: auto;
+  overscroll-behavior: contain; /* the list scrolls, not the page */
+}
+
+.state-list[hidden] {
+  display: none;
+}
+
+.state-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  font-size: 1rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.state-option .state-abbr {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--sage);
+}
+
+/* hover + active(=keyboard cursor) share one soft sage tint — no hard
+   edges, tone-on-tone like the rest of the site */
+.state-option:hover,
+.state-option.active {
+  background: rgba(90, 97, 82, 0.12);
 }
 
 .address-city-row {

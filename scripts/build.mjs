@@ -164,6 +164,17 @@ const checks = [
     "gallery.html lost the thumb URLs",
   ],
   [
+    home.includes(
+      'property="og:image" content="https://thedavilaswedding.parallel5.com/og/home.png"',
+    ),
+    "index.html lost its og:image meta — did the bundler start rewriting meta content?",
+  ],
+  [home.includes('href="/favicon.svg"'), 'index.html lost href="/favicon.svg"'],
+  [
+    home.includes('href="/apple-touch-icon.png"'),
+    'index.html lost href="/apple-touch-icon.png"',
+  ],
+  [
     await Bun.file(path.join(DIST, "index.js")).exists(),
     "dist/index.js is missing — server bundle layout changed",
   ],

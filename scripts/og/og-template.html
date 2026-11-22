@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OG image template — The Davilas</title>
+    <!-- Build-time template for the 1200x630 Open Graph cards
+         (screenshotted by scripts/generate-og.mjs into public/og/<page>.png).
+         Not served, not routed: ?label=<Page Title> fills the serif line.
+         Design = the site's language: sage ground, feathered tone-on-tone
+         corner washes, gold hairline double frame, cream Great Vibes script,
+         serif smallcaps title, rule · ❦ · rule divider. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sage: #5a6152;
+        --wash-1: #55624d;
+        --wash-2: #6e7b60;
+        --cream: #f5f1e8;
+        --gold: #a89968;
+        --gold-soft: rgba(168, 153, 104, 0.5);
+        --gold-faint: rgba(168, 153, 104, 0.28);
+        --forest: #2e4038;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+      }
+
+      body {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: var(--sage);
+        font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+        color: var(--cream);
+      }
+
+      /* feathered watercolor corner washes — tone-on-tone with the sage,
+         blurred out at the edges like the hero panel's */
+      .washes {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .washes::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(44% 62% at 5% 3%, var(--wash-1), transparent 70%),
+          radial-gradient(48% 66% at 97% 99%, var(--wash-2), transparent 72%),
+          radial-gradient(
+            30% 44% at 99% 6%,
+            rgba(46, 64, 56, 0.4),
+            transparent 74%
+          );
+        filter: blur(26px) saturate(0.95);
+      }
+
+      /* gold hairline frame with the notched-inner detail of the cards */
+      .frame {
+        position: absolute;
+        inset: 30px;
+        border: 1px solid var(--gold-soft);
+        pointer-events: none;
+      }
+
+      .frame::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border: 1px solid var(--gold-faint);
+      }
+
+      .content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0 110px;
+      }
+
+      .script {
+        font-family: "Great Vibes", "Brush Script MT", cursive;
+        font-weight: 400;
+        font-size: 138px;
+        line-height: 1.05;
+        color: var(--cream);
+        text-shadow: 0 2px 26px rgba(46, 64, 56, 0.5);
+        margin: -10px 0 0;
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: var(--gold);
+        margin: 26px 0;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        width: 120px;
+        height: 1px;
+      }
+
+      .divider::before {
+        background: linear-gradient(90deg, transparent, var(--gold));
+      }
+
+      .divider::after {
+        background: linear-gradient(90deg, var(--gold), transparent);
+      }
+
+      .divider-glyph {
+        font-size: 32px;
+        line-height: 1;
+        font-family: Georgia, "Times New Roman", serif;
+      }
+
+      .label {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.32em;
+        font-size: 46px;
+        line-height: 1.25;
+        color: rgba(245, 241, 232, 0.94);
+        margin: 0;
+        white-space: nowrap;
+      }
+
+      .date {
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+        font-size: 25px;
+        color: rgba(245, 241, 232, 0.72);
+        margin: 26px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="washes" aria-hidden="true"></div>
+    <div class="frame" aria-hidden="true"></div>
+    <main class="content">
+      <p class="script">The Davilas</p>
+      <div class="divider" aria-hidden="true">
+        <span class="divider-glyph">&#10086;</span>
+      </div>
+      <h1 class="label" id="label">Home</h1>
+      <p class="date">October 23, 2027 &#183; Rockmart, Georgia</p>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const label = document.getElementById("label");
+      label.textContent = params.get("label") || "Home";
+      // Long smallcaps titles (Terms &amp; Conditions…) shrink to fit the
+      // frame instead of overflowing the 1200px card.
+      let size = 46;
+      while (label.scrollWidth > label.clientWidth && size > 24) {
+        size -= 2;
+        label.style.fontSize = `${size}px`;
+      }
+    </script>
+  </body>
+</html>

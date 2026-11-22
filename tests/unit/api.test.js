@@ -189,4 +189,41 @@ describe("static serving", () => {
     expect(css.status).toBe(200);
     expect(css.headers.get("content-type")).toMatch(/text\/css/);
   });
+
+  it("serves the branded head tags (OG, twitter, favicon) on every page", async () => {
+    const routes = {
+      "/": "home",
+      "/about": "about",
+      "/rsvp": "rsvp",
+      "/address": "address",
+      "/schedule": "schedule",
+      "/travel": "travel",
+      "/details": "details",
+      "/wedding-party": "wedding-party",
+      "/gallery": "gallery",
+      "/faq": "faq",
+      "/registry": "registry",
+      "/songs": "songs",
+      "/privacy": "privacy",
+      "/terms": "terms",
+    };
+    for (const [route, image] of Object.entries(routes)) {
+      const res = await fetch(base + route);
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain(
+        `property="og:image" content="https://thedavilaswedding.parallel5.com/og/${image}.png"`,
+      );
+      expect(html).toContain(
+        'name="twitter:card" content="summary_large_image"',
+      );
+      expect(html).toContain('href="/favicon.svg"');
+      expect(html).toContain('href="/apple-touch-icon.png"');
+    }
+
+    // The styled 404 (served from pages/404.html) carries them too.
+    const missing = await fetch(base + "/no-such-page");
+    expect(missing.status).toBe(404);
+    expect(await missing.text()).toContain('property="og:image"');
+  });
 });

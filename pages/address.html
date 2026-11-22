@@ -13,7 +13,36 @@
          visitors see a warm invite-only state (validated client-side on
          load, enforced server-side on submit). -->
     <meta name="robots" content="noindex" />
-    <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+    <meta property="og:site_name" content="The Davilas" />
+    <meta property="og:title" content="Mailing Address · The Davilas" />
+    <meta
+      property="og:description"
+      content="Beat the RSVP rush — give Kendra & Nando your current mailing address so your invitation finds you."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://thedavilaswedding.parallel5.com/address"
+    />
+    <meta
+      property="og:image"
+      content="https://thedavilaswedding.parallel5.com/og/address.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Davilas — Mailing Address" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mailing Address · The Davilas" />
+    <meta
+      name="twitter:description"
+      content="Beat the RSVP rush — give Kendra & Nando your current mailing address so your invitation finds you."
+    />
+    <meta
+      name="twitter:image"
+      content="https://thedavilaswedding.parallel5.com/og/address.png"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -112,7 +141,7 @@
 
         <form
           id="address-form"
-          class="form"
+          class="form placeholder-muted"
           novalidate
           hidden
           data-testid="address-form"
@@ -197,16 +226,38 @@
 
             <div class="field">
               <label for="address-state">State</label>
-              <input
-                id="address-state"
-                name="state"
-                type="text"
-                autocomplete="address-level1"
-                required
-                maxlength="50"
-                placeholder="GA"
-                data-testid="address-state"
-              />
+              <p class="field-hint" id="address-state-hint">
+                Type to search — territories &amp; abroad can be typed as-is
+              </p>
+              <!-- Combobox over the 50 states + DC: filters as you type,
+                   arrow keys + Enter pick, free text always allowed (the
+                   field is still a plain text input to the form/server).
+                   Behavior lives in ./scripts/state-combobox.js. -->
+              <div class="state-combobox">
+                <input
+                  id="address-state"
+                  name="state"
+                  type="text"
+                  autocomplete="address-level1"
+                  role="combobox"
+                  aria-expanded="false"
+                  aria-controls="address-state-list"
+                  aria-autocomplete="list"
+                  aria-describedby="address-state-hint"
+                  required
+                  maxlength="50"
+                  placeholder="GA"
+                  data-testid="address-state"
+                />
+                <ul
+                  id="address-state-list"
+                  class="state-list"
+                  role="listbox"
+                  aria-label="US states"
+                  hidden
+                  data-testid="address-state-list"
+                ></ul>
+              </div>
               <p
                 class="field-error"
                 data-testid="address-state-error"
@@ -601,5 +652,7 @@
         }
       });
     </script>
+
+    <script type="module" src="./scripts/state-combobox.js"></script>
   </body>
 </html>

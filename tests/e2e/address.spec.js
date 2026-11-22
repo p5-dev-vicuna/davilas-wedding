@@ -172,3 +172,77 @@ test.describe('Mailing address (invite-only)', () => {
     await expect(page.getByTestId('address-rsvp-link')).toHaveCount(0)
   })
 })
+
+test.describe('state combobox (address form)', () => {
+  test('typeahead filters the 50 states + DC and Enter picks the abbreviation', async ({ page }) => {
+    await mockValidate(page, true, 'Zach')
+    await page.goto('/address?g=e8sakufe')
+    await expect(page.getByTestId('address-form')).toBeVisible()
+
+    const state = page.getByTestId('address-state')
+    const list = page.getByTestId('address-state-list')
+
+    await state.click()
+    await expect(list).toBeVisible()
+    await expect(list.locator('.state-option')).toHaveCount(51)
+
+    await state.fill('geor')
+    await expect(list.locator('.state-option')).toHaveCount(1)
+    await expect(list.locator('.state-option')).toContainText('Georgia')
+
+    await state.press('Enter')
+    await expect(state).toHaveValue('GA')
+    await expect(list).toBeHidden()
+    await expect(state).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('arrow keys move the active option and Escape closes the list', async ({ page }) => {
+    await mockValidate(page, true, 'Kendra')
+    await page.goto('/address?g=h4zxhqe7')
+    await expect(page.getByTestId('address-form')).toBeVisible()
+
+    const state = page.getByTestId('address-state')
+    const list = page.getByTestId('address-state-list')
+
+    await state.click()
+    await expect(state).toHaveAttribute('aria-activedescendant', 'address-state-opt-AL')
+
+    await state.press('ArrowDown')
+    await expect(state).toHaveAttribute('aria-activedescendant', 'address-state-opt-AK')
+    await state.press('ArrowUp')
+    await expect(state).toHaveAttribute('aria-activedescendant', 'address-state-opt-AL')
+
+    await state.press('Escape')
+    await expect(list).toBeHidden()
+    await expect(state).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  test('free text is kept for territories and rides the submit unchanged', async ({ page }) => {
+    await mockValidate(page, true, 'Zach')
+    const submitted = { value: null }
+    await mockSubmit(page, submitted)
+
+    await page.goto('/address?g=abc123')
+    await expect(page.getByTestId('address-form')).toBeVisible()
+
+    await fillValidAddress(page)
+    await page.getByTestId('address-state').fill('Puerto Rico')
+    await page.getByTestId('address-submit').click()
+
+    await expect(page.getByTestId('address-success')).toBeVisible()
+    expect(submitted.value.state).toBe('Puerto Rico')
+  })
+})
+
+test.describe('address form placeholder legibility', () => {
+  test('the form opts into the lighter placeholder styling', async ({ page }) => {
+    await page.goto('/address')
+
+    await expect(page.getByTestId('address-form')).toHaveClass(/placeholder-muted/)
+
+    // and the stylesheet actually carries the lighter placeholder rule
+    const css = await page.evaluate(async () => (await fetch('/styles/global.css')).text())
+    expect(css).toContain('.placeholder-muted input::placeholder')
+    expect(css).toContain('--placeholder-ink')
+  })
+})
