@@ -13,7 +13,7 @@ Work on branch `addresses` (already checked out). Commit there, PUSH the branch 
 - Short helper line: "Beat the RSVP rush — give us your current mailing address now, so your invitation finds you wherever you land."
 - Personal token: page reads `?g=<token>` from the URL if present (displayed subtly as "We've got you marked down, <nothing shown>" — actually keep it silent; just persist the token with the submission invisibly). If absent, that's fine — form still works.
 - Form fields (each with `data-testid`, labels, inline validation, no horizontal overflow on mobile, 44px+ touch targets per POLISH_REPORT.md standards):
-  - Full name(s) (required, text, max 120) — helper: "For the envelope — e.g. 'Zach & Kaitlyn Christmas'"
+  - Full name(s) (required, text, max 120) — helper: "For the envelope — e.g. 'Zachary & Kaitlyn Christmas'"
   - Street address (required, max 200)
   - Apt / unit (optional, max 30)
   - City (required, max 100), State (required, max 50), ZIP / postal code (required, max 20), Country (optional, defaults "USA")
