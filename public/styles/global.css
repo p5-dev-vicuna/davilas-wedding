@@ -1765,26 +1765,19 @@ textarea {
   }
 }
 
-/* ----- Gallery: three sections (years · proposal · engagement) -----
-   Each section opens with a header card in the home-page card design
-   (.card .frame). The home cards deep-link here via #through-the-years,
-   #proposal, #engagement — html's scroll-padding-top keeps the sticky
-   header clear of the landing spot. */
+/* ----- Gallery: landing + three subpages (years · proposal · engagement)
+   /gallery is a landing of three cards; each section renders on its own
+   page (/gallery/years, /gallery/proposal, /gallery/engagement). The
+   landing cards reuse the home-page card design (.card .frame). */
 .gallery-section {
   margin-top: 3.2rem;
 }
 
-/* A centered banner reads better than full container width. */
-.gallery-section-card {
-  max-width: 560px;
+/* Three cards alone shouldn't stretch edge-to-edge the way the home page's
+   ten do — center them at reading width. */
+.gallery-cards {
+  max-width: 780px;
   margin-inline: auto;
-}
-
-/* Section headers are not links — keep the card look, drop the lift. */
-.gallery-section-card:hover,
-.gallery-section-card:focus-visible {
-  transform: none;
-  box-shadow: none;
 }
 
 /* Through the Years: one block per populated year, His/Hers pair. */
@@ -1827,29 +1820,12 @@ textarea {
   margin-top: 0.55rem;
 }
 
-/* Proposal photos: masonry-ish columns like the engagement grid, minus
-   the lightbox tiles (deliberately NOT .gallery-grid — the lightbox
-   script binds its click handler to the first .gallery-grid only). */
-.proposal-grid {
-  columns: 3;
-  column-gap: 1.2rem;
-  margin-top: 2.4rem;
-}
-
-@media (max-width: 940px) {
-  .proposal-grid { columns: 2; }
-}
-
-@media (max-width: 560px) {
-  .proposal-grid { columns: 1; }
-}
-
-.proposal-photo {
-  margin: 0 0 1.2rem;
-  break-inside: avoid;
-}
-
-.proposal-photo .photo-slot {
+/* Proposal photos: the same lightbox tiles as the engagement grid, so the
+   wrapper rides .gallery-grid (masonry + the per-page lightbox script's
+   click binding). .proposal-grid adds only the 4:5 crop — drop-folder
+   photos have unknown dimensions, unlike the engagement tiles' inline
+   aspect-ratios. */
+.proposal-grid .photo-slot {
   aspect-ratio: 4 / 5;
 }
 

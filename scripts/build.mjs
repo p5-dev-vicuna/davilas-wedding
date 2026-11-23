@@ -159,35 +159,58 @@ for (const file of await collectTextFiles(DIST)) {
 // subresource URLs are bundled).
 const home = await Bun.file(path.join(DIST, "index.html")).text();
 const gallery = await Bun.file(path.join(DIST, "gallery.html")).text();
+const galleryYears = await Bun.file(
+  path.join(DIST, "gallery-years.html"),
+).text();
+const galleryProposal = await Bun.file(
+  path.join(DIST, "gallery-proposal.html"),
+).text();
+const galleryEngagement = await Bun.file(
+  path.join(DIST, "gallery-engagement.html"),
+).text();
 const bundle = await Bun.file(path.join(DIST, "index.js")).text();
 const checks = [
   [restored > 0, "no masked URLs were restored"],
   [
-    !home.includes(MARKER) && !gallery.includes(MARKER),
+    !home.includes(MARKER) &&
+      !gallery.includes(MARKER) &&
+      !galleryYears.includes(MARKER) &&
+      !galleryProposal.includes(MARKER) &&
+      !galleryEngagement.includes(MARKER),
     "marker URL survived in emitted pages",
   ],
   [home.includes('src="/hero.webp"'), 'index.html lost src="/hero.webp"'],
   [
-    gallery.includes('src="/images/gallery/engagement/thumb/'),
-    "gallery.html lost the engagement thumb URLs",
+    galleryEngagement.includes('src="/images/gallery/engagement/thumb/'),
+    "gallery-engagement.html lost the engagement thumb URLs",
   ],
   [
-    gallery.includes('id="through-the-years"') &&
-      gallery.includes('id="proposal"') &&
-      gallery.includes('id="engagement"'),
-    "gallery.html lost one of the three section anchors",
+    // The gallery landing: one card per subpage.
+    gallery.includes('href="/gallery/years"') &&
+      gallery.includes('href="/gallery/proposal"') &&
+      gallery.includes('href="/gallery/engagement"'),
+    "gallery.html (landing) lost one of the three subpage card links",
   ],
   [
-    gallery.includes('data-testid="gallery-coming-soon-proposal"') ||
-      gallery.includes('data-testid="proposal-grid"'),
-    "gallery.html has neither the proposal coming-soon state nor its grid — " +
+    galleryYears.includes('id="through-the-years"') &&
+      (galleryYears.includes('data-testid="year-block-') ||
+        galleryYears.includes(
+          'data-testid="gallery-coming-soon-through-the-years"',
+        )),
+    "gallery-years.html has neither year blocks nor the coming-soon state — " +
       "did the drop-folder placeholder survive?",
   ],
   [
-    home.includes('href="/gallery#through-the-years"') &&
-      home.includes('href="/gallery#proposal"') &&
-      home.includes('href="/gallery#engagement"'),
-    "index.html lost a home-card link to a gallery section",
+    galleryProposal.includes('data-testid="gallery-coming-soon-proposal"') ||
+      galleryProposal.includes('data-testid="proposal-grid"'),
+    "gallery-proposal.html has neither the proposal coming-soon state nor " +
+      "its grid — did the drop-folder placeholder survive?",
+  ],
+  [
+    home.includes('href="/gallery/years"') &&
+      home.includes('href="/gallery/proposal"') &&
+      home.includes('href="/gallery/engagement"'),
+    "index.html lost a home-card link to a gallery subpage",
   ],
   [
     // Prettier wraps long <meta> attributes across lines; flatten whitespace

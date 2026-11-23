@@ -1,12 +1,13 @@
 // Build-time scan + render for the gallery's couple-maintained sections.
 //
-// The gallery page has three sections (#through-the-years, #proposal,
-// #engagement). Engagement is hand-authored markup (the 66 WebP tiles);
-// the other two are populated from local "drop folders" under
-// public/images/gallery/ at build time:
+// The gallery is a landing (/gallery) plus three subpages; two of them are
+// populated from local "drop folders" under public/images/gallery/ at
+// build time via HTML-comment placeholders:
 //
-//   through-the-years/<year>/his.jpg + her.jpg   (years 2017–2026)
-//   proposal/<any-name>.{jpg,jpeg,png,webp}
+//   pages/gallery-years.html      <!-- gallery:through-the-years -->
+//     through-the-years/<year>/his.jpg + her.jpg   (years 2017–2026)
+//   pages/gallery-proposal.html   <!-- gallery:proposal -->
+//     proposal/<any-name>.{jpg,jpeg,png,webp}
 //
 // scripts/build.mjs calls injectGallerySections() on pages/*.html as they
 // enter the bundler (before asset-URL masking, so generated <img src>s ride
@@ -15,8 +16,7 @@
 // source in dev/test — the same parity pattern the asset-URL mask uses.
 // Years with no photos are skipped entirely (no broken images, no gaps);
 // an empty proposal folder (or no years at all) renders a coming-soon note
-// instead, so the section anchors from the home cards always land on
-// something.
+// instead, so the landing's cards always lead somewhere warm.
 import path from "node:path";
 import { readdir } from "node:fs/promises";
 
@@ -34,9 +34,10 @@ export const YEARS = [
   "2026",
 ];
 
-// Placeholders in pages/gallery.html that injectGallerySections() replaces.
-// Plain HTML comments: the bundler ignores them, and they read as docs in
-// the source file.
+// Placeholders that injectGallerySections() replaces — in
+// pages/gallery-years.html and pages/gallery-proposal.html. Plain HTML
+// comments: the bundler ignores them, and they read as docs in the source
+// files.
 export const THROUGH_THE_YEARS_MARKER = "<!-- gallery:through-the-years -->";
 export const PROPOSAL_MARKER = "<!-- gallery:proposal -->";
 
@@ -157,36 +158,74 @@ export function renderThroughTheYears(years) {
 }
 
 /**
- * Render the proposal section body: the dropped photos in name order, or
- * the coming-soon note while the folder is empty.
- * @param {string[]} files
+ * Scan the proposal drop folder's thumb/ sibling for available thumbnails.
+ * A thumb is `proposal/thumb/<exact same file name>` (the engagement-pair
+ * convention). Rendered tiles prefer the thumb in the grid; photos without
+ * one render the dropped file itself.
+ * @param {string} galleryRoot — public/images/gallery
+ * @param {string[]} files — the scanned proposal photo names
+ * @returns {Promise<Set<string>>} subset of files that have a thumb
  */
-export function renderProposal(files) {
+export async function scanProposalThumbs(galleryRoot, files) {
+  let entries;
+  try {
+    entries = await readdir(path.join(galleryRoot, "proposal", "thumb"));
+  } catch {
+    return new Set(); // no thumb/ folder — full photos render directly
+  }
+  const available = new Set(entries);
+  return new Set(files.filter((name) => available.has(name)));
+}
+
+/**
+ * Render the proposal section body: the dropped photos in name order as
+ * lightbox tiles (same markup contract as the engagement grid, so the
+ * per-page lightbox script binds to them), or the coming-soon note while
+ * the folder is empty.
+ * @param {string[]} files
+ * @param {Set<string>} [thumbs] files with a proposal/thumb/ sibling;
+ *   omitted means every tile renders the dropped photo in the grid
+ */
+export function renderProposal(files, thumbs) {
   if (files.length === 0) {
     return comingSoonHtml(
       "gallery-coming-soon-proposal",
       "The proposal photos are on their way — check back soon.",
     );
   }
-  const figures = files
-    .map((file, i) =>
-      [
-        `          <figure class="proposal-photo">`,
-        `            <div class="photo-slot">`,
-        `              <img`,
-        `                src="${PROPOSAL_URL_BASE}/${encodeURI(file)}"`,
-        `                alt="Kendra and Nando, proposal photo ${i + 1} of ${files.length}"`,
-        `                loading="lazy"`,
-        `                decoding="async"`,
-        `              />`,
-        `            </div>`,
-        `          </figure>`,
-      ].join("\n"),
-    )
+  const tiles = files
+    .map((file, i) => {
+      const full = `${PROPOSAL_URL_BASE}/${encodeURI(file)}`;
+      const grid = thumbs?.has(file)
+        ? `${PROPOSAL_URL_BASE}/thumb/${encodeURI(file)}`
+        : full;
+      return [
+        `            <button`,
+        `              type="button"`,
+        `              class="gallery-tile"`,
+        `              data-index="${i}"`,
+        `              data-full="${full}"`,
+        `              data-caption=""`,
+        `              aria-label="Open proposal photo ${i + 1} of ${files.length}"`,
+        `            >`,
+        `              <figure class="photo-slot">`,
+        `                <img`,
+        `                  src="${grid}"`,
+        `                  alt="Kendra and Nando, proposal photo ${i + 1} of ${files.length}"`,
+        `                  loading="lazy"`,
+        `                  decoding="async"`,
+        `                />`,
+        `              </figure>`,
+        `            </button>`,
+      ].join("\n");
+    })
     .join("\n");
   return [
-    `        <div class="proposal-grid" data-testid="proposal-grid">`,
-    figures,
+    // .gallery-grid rides the engagement masonry + lightbox binding;
+    // .proposal-grid adds the 4:5 crop (drop-folder photos have unknown
+    // dimensions, unlike the engagement tiles' inline aspect-ratios).
+    `        <div class="gallery-grid proposal-grid" data-testid="proposal-grid">`,
+    tiles,
     `        </div>`,
   ].join("\n");
 }
@@ -219,9 +258,12 @@ export async function injectGallerySections(html, publicRoot) {
       .join(renderThroughTheYears(await scanGalleryYears(galleryRoot)));
   }
   if (html.includes(PROPOSAL_MARKER)) {
+    const files = await scanProposalPhotos(galleryRoot);
     out = out
       .split(PROPOSAL_MARKER)
-      .join(renderProposal(await scanProposalPhotos(galleryRoot)));
+      .join(
+        renderProposal(files, await scanProposalThumbs(galleryRoot, files)),
+      );
   }
   return out;
 }

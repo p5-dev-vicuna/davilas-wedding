@@ -13,6 +13,9 @@ import travelPage from "../pages/travel.html";
 import detailsPage from "../pages/details.html";
 import weddingPartyPage from "../pages/wedding-party.html";
 import galleryPage from "../pages/gallery.html";
+import galleryYearsPage from "../pages/gallery-years.html";
+import galleryProposalPage from "../pages/gallery-proposal.html";
+import galleryEngagementPage from "../pages/gallery-engagement.html";
 import faqPage from "../pages/faq.html";
 import registryPage from "../pages/registry.html";
 import songsPage from "../pages/songs.html";
@@ -714,6 +717,15 @@ export function createRoutes() {
     "/details": pageRoute(detailsPage, "details.html"),
     "/wedding-party": pageRoute(weddingPartyPage, "wedding-party.html"),
     "/gallery": pageRoute(galleryPage, "gallery.html"),
+    "/gallery/years": pageRoute(galleryYearsPage, "gallery-years.html"),
+    "/gallery/proposal": pageRoute(
+      galleryProposalPage,
+      "gallery-proposal.html",
+    ),
+    "/gallery/engagement": pageRoute(
+      galleryEngagementPage,
+      "gallery-engagement.html",
+    ),
     "/faq": pageRoute(faqPage, "faq.html"),
     "/registry": pageRoute(registryPage, "registry.html"),
     "/songs": pageRoute(songsPage, "songs.html"),

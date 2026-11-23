@@ -29,11 +29,17 @@ Every rule below traces to a real incident. Follow them; they are short.
 - Canonical prod URL: **https://thedavilaswedding.parallel5.com/**
   (`davilas.parallel5.com` also serves).
 
-## Gallery: three sections
+## Gallery: landing + three subpages
 
-`/gallery` has three sections (`#through-the-years`, `#proposal`,
-`#engagement`), each opening with a header card in the home-page card
-design. The home cards deep-link to these anchors.
+`/gallery` is a landing of three cards; each card opens its own page:
+
+- `/gallery/years` (`pages/gallery-years.html`) — Through the Years
+- `/gallery/proposal` (`pages/gallery-proposal.html`) — The Proposal
+- `/gallery/engagement` (`pages/gallery-engagement.html`) — Engagement
+  Photos (the hand-authored tile grid)
+
+The header nav Gallery points at `/gallery` (the landing), and the three
+home-page cards deep-link to the three subpages.
 
 ### Drop folders (Through the Years, Proposal)
 
@@ -46,7 +52,9 @@ masking, so generated `<img src>`s ride the same machinery) and in
   A year renders only when at least one exists; empty years are skipped
   entirely; names match case-insensitively.
 - `proposal/` — any `.jpg`/`.jpeg`/`.png`/`.webp` names, rendered in
-  numeric-aware name order.
+  numeric-aware name order as lightbox tiles. A same-named file in
+  `proposal/thumb/` is used for the grid (the lightbox still gets the
+  full photo); without a thumb the dropped photo renders in the grid.
 - Empty folder/section → tasteful coming-soon note (script accent + one
   warm line). Publishing photos = drop them in, commit, push.
 
@@ -58,15 +66,17 @@ masking, so generated `<img src>`s ride the same machinery) and in
    - grid thumbnail: 640px wide →
      `public/images/gallery/engagement/thumb/<name>.webp`
    - same basename in both directories. Do not invent sizes.
-2. Add ONE `<button>` tile per photo in `pages/gallery.html` (under
-   `#engagement`) — copy an existing tile exactly (structure/classes), set
+2. Add ONE `<button>` tile per photo in
+   `pages/gallery-engagement.html` (inside `#engagement`) — copy an
+   existing tile exactly (structure/classes), set
    `src="/images/gallery/engagement/thumb/<name>.webp"` and
    `data-full="/images/gallery/engagement/<name>.webp"`.
 3. **Renumber `data-index` 0..n-1 across ALL tiles** — the lightbox prev/next
    breaks if the sequence has gaps.
 4. Removing a photo = delete its tile AND both `.webp` files, then renumber.
 5. Gates (rule 1), then serve and LOOK at the gallery before pushing:
-   `cd dist && bun index.js` → open /gallery → every tile shows an image.
+   `cd dist && bun index.js` → open /gallery/engagement → every tile shows
+   an image.
 
 ## Making any other change
 

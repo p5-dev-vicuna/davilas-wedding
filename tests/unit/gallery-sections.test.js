@@ -10,6 +10,7 @@ import {
   renderThroughTheYears,
   scanGalleryYears,
   scanProposalPhotos,
+  scanProposalThumbs,
 } from "../../scripts/gallery-sections.mjs";
 
 // A fixture drop-folder tree, built fresh in the OS temp dir per run:
@@ -142,14 +143,25 @@ describe("scanProposalPhotos + renderProposal", () => {
 
       const html = renderProposal(await scanProposalPhotos(galleryRoot));
       expect(html).toContain('data-testid="proposal-grid"');
-      const ia = html.indexOf("/proposal/a.png");
-      const i2 = html.indexOf("/proposal/b2.jpg");
-      const i10 = html.indexOf("/proposal/b10.jpg");
-      const ic = html.indexOf("/proposal/c.jpg");
+      // Lightbox-tile contract: same classes the engagement grid uses, so
+      // the per-page lightbox script binds to the proposal photos too.
+      expect(html).toContain('class="gallery-grid proposal-grid"');
+      expect(html).toContain('class="gallery-tile"');
+      const ia = html.indexOf('data-full="/images/gallery/proposal/a.png"');
+      const i2 = html.indexOf('data-full="/images/gallery/proposal/b2.jpg"');
+      const i10 = html.indexOf('data-full="/images/gallery/proposal/b10.jpg"');
+      const ic = html.indexOf('data-full="/images/gallery/proposal/c.jpg"');
       expect(ia).toBeGreaterThan(-1);
       expect(i2).toBeGreaterThan(ia);
       expect(i10).toBeGreaterThan(i2);
       expect(ic).toBeGreaterThan(i10);
+      // No thumbs in the fixture → the dropped photo renders in the grid.
+      expect(html).toContain('src="/images/gallery/proposal/a.png"');
+      expect(html).not.toContain("/thumb/");
+      // Sequential data-index for the lightbox prev/next.
+      expect(html).toContain('data-index="0"');
+      expect(html).toContain('data-index="3"');
+      expect(html).not.toContain('data-index="4"');
       expect(html).not.toContain("README.md");
       expect(html).not.toContain("notes.txt");
       expect(html).not.toContain("gallery-coming-soon");
@@ -157,6 +169,44 @@ describe("scanProposalPhotos + renderProposal", () => {
       await rm(proposalDir, { recursive: true, force: true });
       await mkdir(proposalDir, { recursive: true });
     }
+  });
+
+  it("renders the thumb in the grid when proposal/thumb/ has a same-named pair", async () => {
+    const proposalDir = path.join(galleryRoot, "proposal");
+    await Promise.all(
+      ["a7408528.webp", "a7408811.webp"].map((name) =>
+        touch(path.join(proposalDir, name)),
+      ),
+    );
+    await touch(path.join(proposalDir, "thumb", "a7408528.webp"));
+    try {
+      const files = await scanProposalPhotos(galleryRoot);
+      expect(files).toEqual(["a7408528.webp", "a7408811.webp"]);
+
+      const thumbs = await scanProposalThumbs(galleryRoot, files);
+      expect([...thumbs]).toEqual(["a7408528.webp"]);
+
+      const html = renderProposal(files, thumbs);
+      // Paired photo: thumb in the grid, full photo in the lightbox.
+      expect(html).toContain(
+        'src="/images/gallery/proposal/thumb/a7408528.webp"',
+      );
+      expect(html).toContain(
+        'data-full="/images/gallery/proposal/a7408528.webp"',
+      );
+      // Unpaired photo: the dropped file renders in the grid directly.
+      expect(html).toContain('src="/images/gallery/proposal/a7408811.webp"');
+      expect(html).not.toContain("thumb/a7408811.webp");
+    } finally {
+      await rm(proposalDir, { recursive: true, force: true });
+      await mkdir(proposalDir, { recursive: true });
+    }
+  });
+
+  it("scanProposalThumbs returns an empty set when there is no thumb/ folder", async () => {
+    const files = await scanProposalPhotos(galleryRoot);
+    expect(files).toEqual([]);
+    expect((await scanProposalThumbs(galleryRoot, ["x.webp"])).size).toBe(0);
   });
 });
 
