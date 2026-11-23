@@ -32,7 +32,9 @@ import path from "node:path";
 import { readdir, rm } from "node:fs/promises";
 import {
   MARKER,
+  absolutizeAssetUrls,
   countMaskedAssetUrls,
+  countRelativeAssetUrls,
   maskAssetUrls,
   restoreAssetUrls,
 } from "./asset-url-mask.mjs";
@@ -101,7 +103,13 @@ if (!result.success) {
   process.exit(1);
 }
 
-/* -------------------- restore the public URLs in dist/ ------------------- */
+/* ---------- restore the public URLs, absolutize hashed refs, in dist/ ----- */
+// Two passes over dist/'s text outputs:
+//   1. marker restore — masked public URLs come back verbatim;
+//   2. absolutize — the bundler's page-relative hashed subresource refs
+//      ("./terms-<hash>.css") in emitted pages become root-absolute, so
+//      they resolve at every route depth (nested routes resolved "./"
+//      against their own directory and 404'd).
 
 const TEXT_EXTENSIONS = new Set([
   ".html",
@@ -125,11 +133,25 @@ async function collectTextFiles(dir) {
 }
 
 let restored = 0;
+let absolutized = 0;
 for (const file of await collectTextFiles(DIST)) {
   const text = await Bun.file(file).text();
-  if (!text.includes(MARKER)) continue;
-  restored += countMaskedAssetUrls(text);
-  await Bun.write(file, restoreAssetUrls(text));
+  // Emitted pages always get the absolutize pass (the bundler writes
+  // their hashed subresource refs page-relative — see
+  // asset-url-mask.mjs); every other text output only needs the marker
+  // restore.
+  const isPage = path.extname(file) === ".html";
+  if (!text.includes(MARKER) && !isPage) continue;
+  let out = text;
+  if (out.includes(MARKER)) {
+    restored += countMaskedAssetUrls(out);
+    out = restoreAssetUrls(out);
+  }
+  if (isPage) {
+    absolutized += countRelativeAssetUrls(out);
+    out = absolutizeAssetUrls(out);
+  }
+  if (out !== text) await Bun.write(file, out);
 }
 
 /* -------------------- strip the cwd banner from browser chunks ----------
@@ -169,8 +191,67 @@ const galleryEngagement = await Bun.file(
   path.join(DIST, "gallery-engagement.html"),
 ).text();
 const bundle = await Bun.file(path.join(DIST, "index.js")).text();
+
+// Emitted pages must reference their hashed subresources root-absolutely:
+// a page-relative "./x.css" resolves against the route's directory and
+// 404s on nested routes (/gallery/proposal → /gallery/x.css — the bug
+// that shipped unstyled gallery subpages). Check every emitted page, and
+// pin the three nested gallery pages' stylesheet + module script
+// explicitly, down to the files existing at the dist root (what the
+// leading slash denotes when Bun.serve serves the manifest).
+const emittedPages = [];
+for (const entry of await readdir(DIST, { withFileTypes: true })) {
+  if (entry.isFile() && entry.name.endsWith(".html")) {
+    emittedPages.push(entry.name);
+  }
+}
+const relativeLeftovers = [];
+for (const name of emittedPages) {
+  const text = await Bun.file(path.join(DIST, name)).text();
+  if (/\b(?:src|srcset|href)="\.\.?\//.test(text)) relativeLeftovers.push(name);
+}
+const nestedPages = [
+  ["gallery-years.html", galleryYears],
+  ["gallery-proposal.html", galleryProposal],
+  ["gallery-engagement.html", galleryEngagement],
+];
+const nestedSubresources = [];
+for (const [, text] of nestedPages) {
+  for (const ref of text.match(/(?:href|src)="\/[^"]+?\.(?:css|js)"/g) ?? []) {
+    nestedSubresources.push(ref.slice(ref.indexOf('"') + 1, -1));
+  }
+}
 const checks = [
   [restored > 0, "no masked URLs were restored"],
+  [
+    emittedPages.length > 0 && relativeLeftovers.length === 0,
+    "page-relative asset URLs survived in emitted pages: " +
+      relativeLeftovers.join(", "),
+  ],
+  [
+    nestedPages.every(([, text]) =>
+      /<link[^>]*rel="stylesheet"[^>]*href="\//.test(text),
+    ),
+    "a nested gallery page lost its root-absolute stylesheet href",
+  ],
+  [
+    nestedPages.every(([, text]) =>
+      /<script[^>]*type="module"[^>]*src="\//.test(text),
+    ),
+    "a nested gallery page lost its root-absolute module script src",
+  ],
+  [
+    nestedSubresources.length > 0 &&
+      (
+        await Promise.all(
+          nestedSubresources.map((url) =>
+            Bun.file(path.join(DIST, url.slice(1))).exists(),
+          ),
+        )
+      ).every(Boolean),
+    "a nested gallery page references a hashed CSS/JS asset missing from " +
+      "dist/ — root-absolute hrefs must denote real dist-root files",
+  ],
   [
     !home.includes(MARKER) &&
       !gallery.includes(MARKER) &&
@@ -251,5 +332,6 @@ if (failed.length > 0) {
 console.log(
   `[build] bundled ${result.outputs.length} outputs → dist/ ` +
     `(public asset URLs kept verbatim: ${restored} restored; ` +
+    `hashed subresource URLs made root-absolute: ${absolutized}; ` +
     `cwd banner stripped from ${stripped} browser chunk(s))`,
 );

@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test'
 // Head-tags spec: every page carries its unique branded OG/Twitter card and
 // the favicon links, and the branded assets actually serve. Runs against the
 // production build (dist/), so it also proves the meta tags and root-absolute
-// /favicon.svg + /apple-touch-icon.png links survive Bun's HTML bundler.
+// /favicon.svg + /apple-touch-icon.png links survive Bun's HTML bundler —
+// and that every page's hashed stylesheet/module-script URLs are
+// root-absolute (page-relative refs 404 at nested routes like
+// /gallery/proposal).
 
 const CANON = 'https://thedavilaswedding.parallel5.com'
 
@@ -48,6 +51,54 @@ for (const { route, image, title } of PAGES) {
 
     await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg')
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png')
+
+    // Hashed subresources must be root-absolute: a page-relative
+    // "./terms-<hash>.css" resolves against the route's directory and 404s
+    // on nested routes (the bug that shipped unstyled gallery subpages).
+    const sheets = page.locator('link[rel="stylesheet"]')
+    const sheetCount = await sheets.count()
+    expect(sheetCount, `${route} stylesheets`).toBeGreaterThan(0)
+    for (let i = 0; i < sheetCount; i++) {
+      const href = await sheets.nth(i).getAttribute('href')
+      expect(href, `${route} stylesheet href`).toMatch(/^(?:\/|https:\/\/)/)
+    }
+    await expect(page.locator('script[type="module"]').first()).toHaveAttribute(
+      'src',
+      /^\//,
+    )
+  })
+}
+
+// The nested gallery routes are where a page-relative asset URL actually
+// breaks: at /gallery/proposal "./terms-<hash>.css" resolves against
+// /gallery/ → 404 → an unstyled page. Assert the stylesheet href starts
+// with "/" AND that the URL genuinely serves from that route depth
+// (same for the module script that carries the page's JS).
+for (const route of ['/gallery/years', '/gallery/proposal', '/gallery/engagement']) {
+  test(`${route} stylesheet and module script are root-absolute and serve`, async ({ page, request }) => {
+    await page.goto(route)
+
+    const local = await page.evaluate(() => ({
+      sheets: [...document.querySelectorAll('link[rel="stylesheet"]')]
+        .map((el) => el.getAttribute('href'))
+        .filter((href) => href?.startsWith('/')),
+      scripts: [...document.querySelectorAll('script[type="module"]')]
+        .map((el) => el.getAttribute('src'))
+        .filter((src) => src?.startsWith('/')),
+    }))
+    expect(local.sheets.length, `${route} root-absolute stylesheets`).toBeGreaterThan(0)
+    expect(local.scripts.length, `${route} root-absolute module scripts`).toBeGreaterThan(0)
+
+    for (const href of local.sheets) {
+      const res = await request.get(href)
+      expect(res.status(), `${route} ${href}`).toBe(200)
+      expect(res.headers()['content-type'], `${route} ${href}`).toContain('text/css')
+    }
+    for (const src of local.scripts) {
+      const res = await request.get(src)
+      expect(res.status(), `${route} ${src}`).toBe(200)
+      expect(res.headers()['content-type'], `${route} ${src}`).toContain('javascript')
+    }
   })
 }
 

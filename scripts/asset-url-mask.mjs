@@ -1,5 +1,5 @@
-// Shared asset-URL mask/restore — the single source of truth for keeping
-// root-absolute public/ asset URLs ("/hero.webp",
+// Shared asset-URL mask/restore/absolutize — the single source of truth for
+// keeping root-absolute public/ asset URLs ("/hero.webp",
 // "/images/gallery/engagement/thumb/*.webp", "/wedding-party/*.webp" in
 // pages/*.html) verbatim through Bun's
 // HTML bundler. Used by BOTH the production build (scripts/build.mjs, which
@@ -56,4 +56,32 @@ export function restoreAssetUrls(text) {
 /** How many masked URLs are still pending in text (build count/assertions). */
 export function countMaskedAssetUrls(text) {
   return text.split(`${MARKER}/`).length - 1;
+}
+
+/* -------------------- bundler-emitted relative asset URLs ----------------- */
+// Bun's HTML bundler injects each emitted page's hashed subresources —
+// <link rel="stylesheet" href="./terms-<hash>.css"> and <script
+// type="module" src="./<page>-<hash>.js"> — as PAGE-RELATIVE URLs. Those
+// only resolve at depth-0 routes: at /gallery/proposal the browser
+// resolves ./terms-<hash>.css against /gallery/ →
+// /gallery/terms-<hash>.css → 404 → an unstyled page (this shipped: the
+// nested gallery subpages rendered as raw HTML). Every emitted page and
+// every hashed output sits flat at the dist root, and Bun.serve serves
+// an HTML import's manifest files from the URL root, so the correct
+// public URL is the leading-slash form. Build-time only
+// (scripts/build.mjs's restore pass): only the bundler mints these refs,
+// so dev/test page serving never sees one.
+const RELATIVE_ASSET_URL = /\b(src|srcset|href)="(\.\/[^"]*\.[A-Za-z0-9]+)"/g;
+
+/** Rewrite bundler-emitted "./asset.ext" refs to root-absolute "/asset.ext". */
+export function absolutizeAssetUrls(html) {
+  return html.replace(
+    RELATIVE_ASSET_URL,
+    (_match, attr, url) => `${attr}="/${url.slice(2)}"`,
+  );
+}
+
+/** How many page-relative ("./…") asset refs remain (build assertions). */
+export function countRelativeAssetUrls(text) {
+  return text.split(`="./`).length - 1;
 }

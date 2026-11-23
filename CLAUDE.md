@@ -20,7 +20,14 @@ Every rule below traces to a real incident. Follow them; they are short.
   so **Bun's HTML bundler processes asset URLs in the markup at build time**.
   Build = `bun scripts/build.mjs` (masks root-absolute asset URLs like
   `/hero.webp` during bundling and restores them verbatim — public URLs must
-  never change; a post-build assertion counts them, don't bypass it).
+  never change; a post-build assertion counts them, don't bypass it). The
+  same pass rewrites the bundler's page-relative hashed subresource refs
+  (`./terms-<hash>.css`, `./<page>-<hash>.js`) to root-absolute
+  (`/terms-<hash>.css`) in every emitted page — relative refs resolve
+  against the route's directory and 404 on nested routes (`/gallery/proposal`
+  → `/gallery/terms-<hash>.css`), which once shipped as unstyled gallery
+  subpages. Asset URLs in page HTML must always be root-absolute (or
+  absolute `https://` — og:image is absolute per spec).
 - Static assets live in `public/` and are served at the URL root
   (`/hero.webp`, `/images/gallery/engagement/<name>.webp`,
   `/images/gallery/engagement/thumb/<name>.webp`).
