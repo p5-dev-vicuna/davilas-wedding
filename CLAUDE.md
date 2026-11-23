@@ -102,9 +102,12 @@ masking, so generated `<img src>`s ride the same machinery) and in
 1. Wait ~3 min, then hard-refresh https://thedavilaswedding.parallel5.com/ and
    confirm your change is visible.
 2. If stale after ~5 min the auto-deploy was missed: force it from the Coolify
-   UI (open the davilas-wedding app → Deploy, force/rebuild) or via API:
-   `GET https://coolify.parallel5.com/api/v1/deploy?uuid=ocged1iwh5w7lhnhapsh7jg5&force=true`
-   (Bearer token required).
+   UI (open the davilas-wedding app → Deploy, force/rebuild) or via API —
+   note this Coolify build (v4.0.0-beta.473) requires **POST**, not GET:
+   `POST https://coolify.parallel5.com/api/v1/deploy?uuid=ocged1iwh5w7lhnhapsh7jg5&force=true`
+   (Bearer token required; the `COOLIFY_API_TOKEN` repo secret holds one —
+   a `workflow_dispatch` workflow that curls with it works when no local
+   token is available. Cloudflare 403s non-browser User-Agents on this API.)
 3. A **failed deploy is not downtime** — the old container keeps serving. Read
    the failed deployment's log tail in Coolify to find the failing step, fix,
    re-push, force-deploy.
