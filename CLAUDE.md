@@ -22,21 +22,46 @@ Every rule below traces to a real incident. Follow them; they are short.
   `/hero.webp` during bundling and restores them verbatim — public URLs must
   never change; a post-build assertion counts them, don't bypass it).
 - Static assets live in `public/` and are served at the URL root
-  (`/hero.webp`, `/gallery/<name>.webp`, `/gallery/thumb/<name>.webp`).
+  (`/hero.webp`, `/images/gallery/engagement/<name>.webp`,
+  `/images/gallery/engagement/thumb/<name>.webp`).
 - Production: pushes to `main` auto-deploy via Coolify (~1–3 min) **but the
   webhook has silently missed pushes**. A push is not a deploy — see Deploying.
 - Canonical prod URL: **https://thedavilaswedding.parallel5.com/**
   (`davilas.parallel5.com` also serves).
 
-## Adding / removing gallery photos
+## Gallery: three sections
+
+`/gallery` has three sections (`#through-the-years`, `#proposal`,
+`#engagement`), each opening with a header card in the home-page card
+design. The home cards deep-link to these anchors.
+
+### Drop folders (Through the Years, Proposal)
+
+Populated at build time by `scripts/gallery-sections.mjs`, which scans
+`public/images/gallery/` — in `scripts/build.mjs` (before asset-URL
+masking, so generated `<img src>`s ride the same machinery) and in
+`server/app.js` for dev/test page serving (same parity as the mask).
+
+- `through-the-years/<year>/his.jpg` + `her.jpg` (years 2017–2026).
+  A year renders only when at least one exists; empty years are skipped
+  entirely; names match case-insensitively.
+- `proposal/` — any `.jpg`/`.jpeg`/`.png`/`.webp` names, rendered in
+  numeric-aware name order.
+- Empty folder/section → tasteful coming-soon note (script accent + one
+  warm line). Publishing photos = drop them in, commit, push.
+
+### Adding / removing engagement photos
 
 1. Convert photos to WebP first:
-   - lightbox size: 1800px on the long edge → `public/gallery/<name>.webp`
-   - grid thumbnail: 640px wide → `public/gallery/thumb/<name>.webp`
+   - lightbox size: 1800px on the long edge →
+     `public/images/gallery/engagement/<name>.webp`
+   - grid thumbnail: 640px wide →
+     `public/images/gallery/engagement/thumb/<name>.webp`
    - same basename in both directories. Do not invent sizes.
-2. Add ONE `<button>` tile per photo in `pages/gallery.html` — copy an existing
-   tile exactly (structure/classes), set `src="/gallery/thumb/<name>.webp"` and
-   `data-full="/gallery/<name>.webp"`.
+2. Add ONE `<button>` tile per photo in `pages/gallery.html` (under
+   `#engagement`) — copy an existing tile exactly (structure/classes), set
+   `src="/images/gallery/engagement/thumb/<name>.webp"` and
+   `data-full="/images/gallery/engagement/<name>.webp"`.
 3. **Renumber `data-index` 0..n-1 across ALL tiles** — the lightbox prev/next
    breaks if the sequence has gaps.
 4. Removing a photo = delete its tile AND both `.webp` files, then renumber.

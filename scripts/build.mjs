@@ -36,10 +36,12 @@ import {
   maskAssetUrls,
   restoreAssetUrls,
 } from "./asset-url-mask.mjs";
+import { injectGallerySections } from "./gallery-sections.mjs";
 
 const ROOT = path.resolve(import.meta.dir, "..");
 const DIST = path.join(ROOT, "dist");
 const PAGES = path.join(ROOT, "pages");
+const PUBLIC_ROOT = path.join(ROOT, "public");
 
 // Injected verbatim at the very top of dist/index.js — before the inlined
 // module bodies and long before createApp() — so the embedded HTML manifests
@@ -76,7 +78,13 @@ const config = {
           // from disk at runtime and never enters the build graph.
           if (!args.path.startsWith(PAGES + path.sep)) return undefined;
           const html = await Bun.file(args.path).text();
-          return { contents: maskAssetUrls(html), loader: "html" };
+          // Drop-folder sections are injected BEFORE masking so generated
+          // <img src>s ride the same mask/restore machinery as the rest
+          // (no-op for pages without the placeholders).
+          const contents = maskAssetUrls(
+            await injectGallerySections(html, PUBLIC_ROOT),
+          );
+          return { contents, loader: "html" };
         });
       },
     },
@@ -160,8 +168,26 @@ const checks = [
   ],
   [home.includes('src="/hero.webp"'), 'index.html lost src="/hero.webp"'],
   [
-    gallery.includes('src="/gallery/thumb/'),
-    "gallery.html lost the thumb URLs",
+    gallery.includes('src="/images/gallery/engagement/thumb/'),
+    "gallery.html lost the engagement thumb URLs",
+  ],
+  [
+    gallery.includes('id="through-the-years"') &&
+      gallery.includes('id="proposal"') &&
+      gallery.includes('id="engagement"'),
+    "gallery.html lost one of the three section anchors",
+  ],
+  [
+    gallery.includes('data-testid="gallery-coming-soon-proposal"') ||
+      gallery.includes('data-testid="proposal-grid"'),
+    "gallery.html has neither the proposal coming-soon state nor its grid — " +
+      "did the drop-folder placeholder survive?",
+  ],
+  [
+    home.includes('href="/gallery#through-the-years"') &&
+      home.includes('href="/gallery#proposal"') &&
+      home.includes('href="/gallery#engagement"'),
+    "index.html lost a home-card link to a gallery section",
   ],
   [
     // Prettier wraps long <meta> attributes across lines; flatten whitespace

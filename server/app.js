@@ -24,6 +24,7 @@ import { createRateLimiter } from "./rate-limit.js";
 import { serve404, servePublicFile } from "./static.js";
 import { firstName } from "../shared/songs.js";
 import { restoreAssetUrls } from "../scripts/asset-url-mask.mjs";
+import { injectGallerySections } from "../scripts/gallery-sections.mjs";
 
 /* ---------------------------- rate limiting ---------------------------- */
 // In-memory token bucket: 60 requests/minute/IP burst — plenty for guests,
@@ -667,6 +668,10 @@ async function getGuests(req, server) {
 // prebuilt bundle exactly as before.
 
 const PAGES_DIR = path.join(import.meta.dir, "..", "pages");
+// Same resolution scheme as server/static.js's PUBLIC_ROOT: repo/public in
+// dev, <bundle dir>/../public in a dist/ layout. Used only by the
+// from-source page serving below (production serves the prebuilt pages).
+const PUBLIC_ROOT = path.join(path.resolve(import.meta.dir, ".."), "public");
 
 /**
  * Route value for one page import: the prebuilt manifest when running from
@@ -682,7 +687,10 @@ function pageRoute(page, file) {
       const html = restoreAssetUrls(
         await Bun.file(path.join(PAGES_DIR, file)).text(),
       );
-      const markup = html.replaceAll('="../public/', '="/');
+      const markup = await injectGallerySections(
+        html.replaceAll('="../public/', '="/'),
+        PUBLIC_ROOT,
+      );
       return new Response(markup, {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });

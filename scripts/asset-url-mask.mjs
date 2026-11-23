@@ -1,6 +1,7 @@
 // Shared asset-URL mask/restore — the single source of truth for keeping
-// root-absolute public/ asset URLs ("/hero.webp", "/gallery/thumb/*.webp",
-// "/gallery/wedding-party/*.webp" in pages/*.html) verbatim through Bun's
+// root-absolute public/ asset URLs ("/hero.webp",
+// "/images/gallery/engagement/thumb/*.webp", "/wedding-party/*.webp" in
+// pages/*.html) verbatim through Bun's
 // HTML bundler. Used by BOTH the production build (scripts/build.mjs, which
 // masks onLoad and restores the emitted files) and the dev/test page
 // serving in server/app.js (which restores page markup it serves straight
