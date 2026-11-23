@@ -3,6 +3,16 @@
 This file exists because AI-assisted changes broke production twice in one day.
 Every rule below traces to a real incident. Follow them; they are short.
 
+## Design Authority — read before any design or copy change
+
+**BRAND.md is the single source of truth** for visual and copy decisions:
+palette, typography, spacing, components, imagery, and voice. Read it
+before touching markup, styles, or copy — it documents the current live
+design, and colors change only via the CSS custom properties in
+`public/styles/global.css`. Deviations require owner approval, recorded in
+chat, before pushing. If BRAND.md and the live site disagree, the live site
+wins — report it and fix the doc.
+
 ## The two rules that prevent every incident so far
 
 1. **Never push without running the gates AND looking at your diff.**
