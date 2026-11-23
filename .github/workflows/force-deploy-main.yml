@@ -23,6 +23,7 @@ jobs:
           # User-Agents, so claim to be a plain browser (same as
           # branch-preview.yml).
           code="$(curl -sS -o /tmp/resp.json -w '%{http_code}' \
+            -X POST \
             -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             -A "Mozilla/5.0" \
             "https://coolify.parallel5.com/api/v1/deploy?uuid=ocged1iwh5w7lhnhapsh7jg5&force=true")"
