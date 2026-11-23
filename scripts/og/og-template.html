@@ -6,9 +6,10 @@
     <!-- Build-time template for the 1200x630 Open Graph cards
          (screenshotted by scripts/generate-og.mjs into public/og/<page>.png).
          Not served, not routed: ?label=<Page Title> fills the serif line.
-         Design = the site's language: sage ground, feathered tone-on-tone
-         corner washes, gold hairline double frame, cream Great Vibes script,
-         serif smallcaps title, rule · ❦ · rule divider. -->
+         Design = the site's language (autumn palette): moss ground,
+         feathered tone-on-tone corner washes, amber hairline double frame,
+         cream Great Vibes script, serif smallcaps title, rule · ❦ · rule
+         divider. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,14 +18,14 @@
     />
     <style>
       :root {
-        --sage: #5a6152;
-        --wash-1: #55624d;
-        --wash-2: #6e7b60;
+        --sage: #4c563f;
+        --wash-1: #49533d;
+        --wash-2: #5f6d4d;
         --cream: #f5f1e8;
-        --gold: #a89968;
-        --gold-soft: rgba(168, 153, 104, 0.5);
-        --gold-faint: rgba(168, 153, 104, 0.28);
-        --forest: #2e4038;
+        --gold: #b78953;
+        --gold-soft: rgba(183, 137, 83, 0.5);
+        --gold-faint: rgba(183, 137, 83, 0.28);
+        --forest: #243533;
       }
 
       * {
@@ -46,7 +47,7 @@
         color: var(--cream);
       }
 
-      /* feathered watercolor corner washes — tone-on-tone with the sage,
+      /* feathered watercolor corner washes — tone-on-tone with the moss,
          blurred out at the edges like the hero panel's */
       .washes {
         position: absolute;
@@ -63,7 +64,7 @@
           radial-gradient(48% 66% at 97% 99%, var(--wash-2), transparent 72%),
           radial-gradient(
             30% 44% at 99% 6%,
-            rgba(46, 64, 56, 0.4),
+            rgba(36, 53, 51, 0.4),
             transparent 74%
           );
         filter: blur(26px) saturate(0.95);
@@ -101,7 +102,7 @@
         font-size: 138px;
         line-height: 1.05;
         color: var(--cream);
-        text-shadow: 0 2px 26px rgba(46, 64, 56, 0.5);
+        text-shadow: 0 2px 26px rgba(36, 53, 51, 0.5);
         margin: -10px 0 0;
       }
 

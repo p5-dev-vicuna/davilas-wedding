@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- The Davilas favicon — the site's divider language (gold rule ·
-       diamond · gold rule) on a sage rounded square with a hairline
-       inner frame. Pure vector: no font dependency. Palette: --sage
-       #5a6152, --gold #a89968, --gold-on-forest #cdbf94. -->
-  <rect width="64" height="64" rx="12" fill="#5a6152"/>
-  <rect x="6" y="6" width="52" height="52" rx="7" fill="none" stroke="#a89968" stroke-width="1.5" opacity="0.9"/>
-  <line x1="11" y1="32" x2="22" y2="32" stroke="#a89968" stroke-width="1.5"/>
-  <line x1="42" y1="32" x2="53" y2="32" stroke="#a89968" stroke-width="1.5"/>
-  <rect x="26" y="26" width="12" height="12" transform="rotate(45 32 32)" fill="#cdbf94"/>
+  <!-- The Davilas favicon — the site's divider language (amber rule ·
+       diamond · amber rule) on a moss rounded square with a hairline
+       inner frame. Pure vector: no font dependency. Palette (autumn):
+       --sage #4c563f (Moss Mist), --gold #b78953 (Amber Glow),
+       --gold-on-forest #d9bc8e (brightened amber). -->
+  <rect width="64" height="64" rx="12" fill="#4c563f"/>
+  <rect x="6" y="6" width="52" height="52" rx="7" fill="none" stroke="#b78953" stroke-width="1.5" opacity="0.9"/>
+  <line x1="11" y1="32" x2="22" y2="32" stroke="#b78953" stroke-width="1.5"/>
+  <line x1="42" y1="32" x2="53" y2="32" stroke="#b78953" stroke-width="1.5"/>
+  <rect x="26" y="26" width="12" height="12" transform="rotate(45 32 32)" fill="#d9bc8e"/>
 </svg>

@@ -1,7 +1,8 @@
 /* ==========================================================================
    The Davilas — Kendra & Nando · October 23, 2027
-   One stylesheet, vanilla CSS. Design tokens come straight from the couple's
-   save-the-date: cream paper, sage panel, forest ink, thin gold rules.
+   One stylesheet, vanilla CSS. Design tokens follow the couple's autumn
+   mood board: cream paper, moss panel, lagoon ink, thin amber rules,
+   crimson + maple as sparing second accents (errors, the slim header bar).
    ========================================================================== */
 
 /* ----- Design tokens ----- */
@@ -10,29 +11,28 @@
 
   --cream: #f5f1e8;
   --cream-deep: #ece6d6;
-  --sage: #5a6152;
-  --forest: #2e4038;
-  --ink: #33342e;
-  --gold: #a89968;
-  --gold-soft: rgba(168, 153, 104, 0.5);
-  --gold-faint: rgba(168, 153, 104, 0.18);
-  --gold-on-forest: #cdbf94; /* brightened gold: 6.0:1 on forest (plain gold is 3.9:1) */
-  --wash-1: #55624d; /* W2 watercolor washes — deep sage, tone-on-tone with the panel */
-  --wash-2: #6e7b60; /* W2 watercolor washes — lighter sage */
+  --sage: #4c563f; /* Moss Mist (autumn palette) — still the sage ROLE: panels, labels */
+  --forest: #243533; /* Lagoon (autumn palette) — headings, buttons, footer */
+  --ink: #2b322f; /* lagoon-tinted ink: 11.6:1 on cream (old ink was 11.2:1) */
+  --gold: #b78953; /* Amber Glow (autumn palette) */
+  --gold-soft: rgba(183, 137, 83, 0.5);
+  --gold-faint: rgba(183, 137, 83, 0.18);
+  --gold-on-forest: #d9bc8e; /* brightened amber: 7.1:1 on lagoon (plain amber is 3.7:1) */
+  --wash-1: #49533d; /* W2 watercolor washes — deep moss, tone-on-tone with the panel */
+  --wash-2: #5f6d4d; /* W2 watercolor washes — lighter moss */
   --white: #fdfcf8;
-  --rust: #8a3b2e; /* error accents — dark enough to read on cream */
-  /* Placeholder text on form inputs — a muted sage-tinted gray, NOT
-     --sage: the old value (6.3:1 on the white inputs) was dark enough
-     that phone users read placeholders as already-filled-in values.
-     ~2.9:1 on --white / ~2.7:1 on --cream: clearly lighter than entered
+  --rust: #964734; /* Crimson Blaze — error accents, 5.7:1 on cream (AA) */
+  /* Placeholder text on form inputs — a muted moss-tinted gray, NOT
+     --sage: a darker value would read as already-filled-in on phones.
+     ~3.0:1 on --white / ~2.8:1 on --cream: clearly lighter than entered
      --ink text (~12:1) while still legible as a prompt. */
-  --placeholder-ink: #8f987e;
+  --placeholder-ink: #8d9580;
 
   --font-display: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
   --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
   --font-script: 'Great Vibes', 'Brush Script MT', cursive;
 
-  --shadow-soft: 0 12px 32px rgba(46, 64, 56, 0.09);
+  --shadow-soft: 0 12px 32px rgba(36, 53, 51, 0.09);
   --tap-min: 44px; /* comfortable touch target on phones */
 }
 
@@ -58,7 +58,7 @@ body {
   background-color: var(--cream);
   /* subtle letterpress-paper texture */
   background-image:
-    radial-gradient(rgba(46, 64, 56, 0.028) 1px, transparent 1.4px),
+    radial-gradient(rgba(36, 53, 51, 0.028) 1px, transparent 1.4px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 340px);
   background-size: 26px 26px, 100% 100%;
   -webkit-font-smoothing: antialiased;
@@ -283,9 +283,9 @@ main p {
   gap: 0.6rem;
   border: 1px solid var(--gold-soft);
   background:
-    linear-gradient(135deg, rgba(168, 153, 104, 0.1), rgba(90, 97, 82, 0.14)),
-    repeating-linear-gradient(45deg, rgba(90, 97, 82, 0.05) 0 2px, transparent 2px 9px);
-  color: var(--forest); /* label text: 7.6:1 on the light slot gradient */
+    linear-gradient(135deg, rgba(183, 137, 83, 0.1), rgba(76, 86, 63, 0.14)),
+    repeating-linear-gradient(45deg, rgba(76, 86, 63, 0.05) 0 2px, transparent 2px 9px);
+  color: var(--forest); /* label text: ~8.8:1 on the light slot gradient */
   min-height: 120px;
   overflow: hidden;
 }
@@ -534,7 +534,7 @@ main p {
 }
 
 .footer-links a {
-  color: var(--gold-on-forest); /* 6.0:1 on forest — plain gold reads 3.9:1 */
+  color: var(--gold-on-forest); /* 7.1:1 on lagoon — plain amber reads 3.7:1 */
   text-decoration: none;
   font-family: var(--font-display);
   text-transform: uppercase;
@@ -639,20 +639,20 @@ main p {
 
 .hero-sage .photo-slot {
   width: 100%; /* fills the sage mat; aspect-ratio (3/2) is set inline */
-  /* W2: rounded corners + thin gold frame + a soft gold halo that melts
-     into the sage (overflow:hidden above clips the photo to the radius) */
-  border: 1px solid rgba(176, 141, 79, 0.85);
+  /* W2: rounded corners + thin amber frame + a soft amber halo that melts
+     into the moss (overflow:hidden above clips the photo to the radius) */
+  border: 1px solid rgba(183, 137, 83, 0.85);
   border-radius: 18px;
   box-shadow:
-    0 0 0 6px rgba(176, 141, 79, 0.16),
-    0 0 22px rgba(176, 141, 79, 0.22);
+    0 0 0 6px rgba(183, 137, 83, 0.16),
+    0 0 22px rgba(183, 137, 83, 0.22);
   background:
-    linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(46, 64, 56, 0.2)),
+    linear-gradient(135deg, rgba(183, 137, 83, 0.16), rgba(36, 53, 51, 0.2)),
     repeating-linear-gradient(-45deg, rgba(245, 241, 232, 0.05) 0 2px, transparent 2px 10px);
-  color: var(--white); /* label text: 5.0:1 on the sage glass gradient */
+  color: var(--white); /* label text: ~7.5:1 on the moss glass gradient */
 }
 
-/* forest scrim over the photo's foot — keeps the script overlay legible
+/* lagoon scrim over the photo's foot — keeps the script overlay legible
    (the couple's heads sit ~62-69% up the frame; the scrim fades out below
    them and only touches bodies/steps) */
 .hero-photo::after {
@@ -661,9 +661,9 @@ main p {
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(46, 64, 56, 0.58),
-    rgba(46, 64, 56, 0.42) 22%,
-    rgba(46, 64, 56, 0) 34%
+    rgba(36, 53, 51, 0.58),
+    rgba(36, 53, 51, 0.42) 22%,
+    rgba(36, 53, 51, 0) 34%
   );
   pointer-events: none;
 }
@@ -678,8 +678,8 @@ main p {
   line-height: 1.1; /* tight box: the glyphs sit low, inside the scrim */
   color: var(--cream);
   text-shadow:
-    0 2px 18px rgba(46, 64, 56, 0.55),
-    0 1px 3px rgba(46, 64, 56, 0.5);
+    0 2px 18px rgba(36, 53, 51, 0.55),
+    0 1px 3px rgba(36, 53, 51, 0.5);
   pointer-events: none;
   padding-bottom: 0.25rem;
 }
@@ -939,7 +939,7 @@ main p {
 .callout {
   position: relative;
   border: 1px solid var(--gold-soft);
-  background: rgba(168, 153, 104, 0.08);
+  background: rgba(183, 137, 83, 0.08);
   padding: 1.6rem 1.6rem 1.3rem;
   margin: 0 0 2rem;
   text-align: center;
@@ -1116,8 +1116,8 @@ textarea {
 
 .form-error {
   color: var(--rust);
-  border: 1px solid rgba(138, 59, 46, 0.4);
-  background: rgba(138, 59, 46, 0.06);
+  border: 1px solid rgba(150, 71, 52, 0.4);
+  background: rgba(150, 71, 52, 0.06);
   padding: 0.8rem 1rem;
   margin-bottom: 1.2rem;
 }
@@ -1183,7 +1183,7 @@ textarea {
    edges, tone-on-tone like the rest of the site */
 .state-option:hover,
 .state-option.active {
-  background: rgba(90, 97, 82, 0.12);
+  background: rgba(76, 86, 63, 0.12);
 }
 
 .address-city-row {
@@ -1208,7 +1208,7 @@ textarea {
 .success-box {
   text-align: center;
   border: 1px solid var(--gold-soft);
-  background: rgba(168, 153, 104, 0.1);
+  background: rgba(183, 137, 83, 0.1);
   padding: 2.2rem 1.6rem;
 }
 
@@ -1370,7 +1370,7 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(46, 64, 56, 0.93);
+  background: rgba(36, 53, 51, 0.93);
   display: grid;
   place-items: center;
   padding: 2rem;
@@ -1391,7 +1391,7 @@ textarea {
   max-height: 70vh;
   margin-inline: auto;
   background:
-    linear-gradient(135deg, rgba(168, 153, 104, 0.16), rgba(90, 97, 82, 0.2)),
+    linear-gradient(135deg, rgba(183, 137, 83, 0.16), rgba(76, 86, 63, 0.2)),
     repeating-linear-gradient(45deg, rgba(245, 241, 232, 0.05) 0 2px, transparent 2px 9px);
   color: var(--white);
   border-color: rgba(245, 241, 232, 0.4);
@@ -1653,17 +1653,18 @@ textarea {
    values in the :root just below; everything else follows them.
    To remove the whole feature: delete this section. */
 :root {
-  /* D2 pane tones — low-saturation, translucent (alpha ≤ .4) over cream.
-     Distinct from the hero's --wash-* watercolors but in the same key. */
-  --glass-sage: rgba(90, 97, 82, 0.34); /* --sage */
-  --glass-olive: rgba(110, 123, 96, 0.3); /* sage eased toward --wash-2 */
-  --glass-gold: rgba(168, 153, 104, 0.3); /* --gold */
-  --glass-amber: rgba(176, 141, 79, 0.3); /* the warm gold of the hero frame */
+  /* D2 pane tones — low-saturation, translucent (alpha ≤ .34) over cream.
+     Distinct from the hero's --wash-* watercolors but in the same key.
+     Autumn-palette bases: moss / moss-light / amber / warm amber. */
+  --glass-sage: rgba(76, 86, 63, 0.34); /* --sage (Moss Mist) */
+  --glass-olive: rgba(95, 109, 77, 0.3); /* moss eased toward --wash-2 */
+  --glass-gold: rgba(183, 137, 83, 0.3); /* --gold (Amber Glow) */
+  --glass-amber: rgba(196, 133, 75, 0.26); /* Amber Glow leaned warm */
   /* held in reserve for the owner's retint — deliberately unused: the
      orange/rust lean was part of what he disliked about the old panels */
-  --glass-rust: rgba(138, 59, 46, 0.24);
+  --glass-rust: rgba(150, 71, 52, 0.24);
 
-  --oak: #8a5d33; /* the slim header bar on small screens */
+  --oak: #692721; /* Maple Spice — the slim header bar on small screens */
   --sage-deep: var(--wash-1); /* the M2 footer band */
 }
 
@@ -1697,7 +1698,7 @@ textarea {
         var(--glass-olive) 87% 100%),
       radial-gradient(130% 34% at 28% 5%, var(--glass-sage), transparent 72%),
       radial-gradient(120% 32% at 72% 96%, var(--glass-amber), transparent 74%),
-      linear-gradient(180deg, rgba(236, 230, 214, 0.12), rgba(90, 97, 82, 0.1));
+      linear-gradient(180deg, rgba(236, 230, 214, 0.12), rgba(76, 86, 63, 0.1));
     filter: blur(9px) saturate(0.96);
     pointer-events: none;
   }
