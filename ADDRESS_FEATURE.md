@@ -29,7 +29,7 @@ Branch: `addresses` (off `origin/main`). Not deployed; `main` untouched.
 
   City/State/ZIP sit in a responsive grid (`address-city-row`): one column on
   phones (no horizontal overflow), three columns ≥640px. Name carries the
-  helper "For the envelope — e.g. 'Fernanda & Alex Davila'".
+  helper "For the envelope — e.g. 'Zach & Kaitlyn Christmas'".
 
 - Silent personal token: `?g=<token>` from the URL is read client-side,
   never rendered, capped at 64 chars, and sent as `guest_token` with the
