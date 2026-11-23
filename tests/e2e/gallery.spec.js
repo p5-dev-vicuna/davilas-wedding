@@ -2,20 +2,19 @@ import { expect, test } from '@playwright/test'
 
 // Gallery restructure: /gallery is a landing of three cards (Through the
 // Years · The Proposal · Engagement Photos), each opening its own subpage.
-// The 9 proposal photos render on /gallery/proposal (drop folder +
+// The 8 proposal photos render on /gallery/proposal (drop folder +
 // proposal/thumb/ pairs); the 57 engagement favorites on
 // /gallery/engagement, both under the per-page lightbox.
 
 const PROPOSAL_BASENAMES = [
-  'a7408528',
-  'a7408530',
-  'a7408543',
-  'a7408550',
-  'a7408557',
-  'a7408568',
-  'a7408702',
-  'a7408741',
-  'a7408811',
+  'proposal-01',
+  'proposal-02',
+  'proposal-03',
+  'proposal-04',
+  'proposal-05',
+  'proposal-06',
+  'proposal-07',
+  'proposal-08',
 ]
 
 test('gallery landing shows three cards linking to the subpages', async ({ page }) => {
@@ -74,13 +73,13 @@ test('through the years page renders the scanned year sections', async ({ page }
   await expect(page.getByTestId('gallery-coming-soon-through-the-years')).toContainText(/coming soon/i)
 })
 
-test('proposal page shows the 9 photos with valid targets (no broken img src)', async ({ page }) => {
+test('proposal page shows the 8 photos with valid targets (no broken img src)', async ({ page }) => {
   await page.goto('/gallery/proposal')
 
   await expect(page.getByTestId('gallery-proposal-heading')).toHaveText('The Proposal')
 
   const tiles = page.getByTestId('proposal-grid').locator('.gallery-tile')
-  await expect(tiles).toHaveCount(9)
+  await expect(tiles).toHaveCount(8)
   await expect(tiles.first().locator('img')).toHaveAttribute(
     'src',
     `/images/gallery/proposal/thumb/${PROPOSAL_BASENAMES[0]}.webp`,
@@ -124,7 +123,7 @@ test('engagement page shows the 57 favorites with valid targets (no broken img s
     'src',
     '/images/gallery/engagement/thumb/cdp03543.webp',
   )
-  // The proposal-night photos (a7408*) no longer live in the engagement grid.
+  // The original proposal-night photos (a7408*) are not in the engagement grid.
   await expect(page.locator('img[src*="/a7408"]')).toHaveCount(0)
 
   const bad = await page.evaluate(async () => {

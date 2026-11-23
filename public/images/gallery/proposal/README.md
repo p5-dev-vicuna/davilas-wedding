@@ -13,5 +13,5 @@ Drop the proposal photos here with **any names** — `.jpg`, `.jpeg`,
   instead.
 - Publishing = commit + push; the next build re-scans this folder.
 
-The nine photos currently here (`a7408528`–`a7408811`, Ponce City Market
-rooftop) were re-homed from the engagement folder with their thumbs.
+The eight photos currently here (`proposal-01`–`proposal-08`, Ponce City Market
+rooftop) are Kendra's picks; they replaced the earlier nine (`a7408528`–`a7408811`).
