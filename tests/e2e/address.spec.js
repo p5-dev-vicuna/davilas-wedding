@@ -50,10 +50,17 @@ test.describe('Mailing address (invite-only)', () => {
 
     await expect(page.getByTestId('address-invite-only')).toBeHidden()
     await expect(page.getByTestId('address-form')).toBeVisible()
+    // The personalization renders in the quiet script accent line under
+    // the heading — the H1 itself stays static (uppercase + name reads
+    // as yelling, per Kendra's feedback).
     await expect(page.getByTestId('address-guest-name')).toHaveText('Zach')
+    await expect(page.getByTestId('address-guest-line')).toBeVisible()
+    await expect(page.getByTestId('address-guest-line')).toHaveClass(/script/)
+    await expect(page.getByTestId('address-guest-line')).toContainText('for Zach')
     await expect(page.getByTestId('address-heading')).toContainText(
-      'Where should we send it, Zach?'
+      'Where should we send your invitation?'
     )
+    await expect(page.getByTestId('address-heading')).not.toContainText('Zach')
     await expect(page.getByTestId('address-accent')).toContainText(/don't lose us in the mail/i)
     await expect(page.getByTestId('address-lede')).toContainText(/beat the rsvp rush/i)
 
@@ -98,6 +105,8 @@ test.describe('Mailing address (invite-only)', () => {
     await expect(invite).toContainText(/invitation\s+is\s+on\s+its\s+way/i)
     await expect(page.getByTestId('address-form')).toBeHidden()
     await expect(page.getByTestId('address-success')).toBeHidden()
+    // No personalization leaks to tokenless visitors.
+    await expect(page.getByTestId('address-guest-line')).toBeHidden()
   })
 
   test('unknown token gets the invite-only state too', async ({ page }) => {
@@ -107,6 +116,7 @@ test.describe('Mailing address (invite-only)', () => {
 
     await expect(page.getByTestId('address-invite-only')).toBeVisible()
     await expect(page.getByTestId('address-form')).toBeHidden()
+    await expect(page.getByTestId('address-guest-line')).toBeHidden()
   })
 
   test('personal token rides along silently and shows up in the admin list', async ({ page }) => {

@@ -1128,6 +1128,13 @@ textarea {
   margin-bottom: 0.2rem;
 }
 
+/* Guest-name accent (valid personal links): a quiet script follow-on
+   directly under the page title — modest next to the accent above it. */
+.script-guest {
+  font-size: clamp(1.4rem, 3.5vw, 1.7rem);
+  margin-bottom: 0.6rem;
+}
+
 /* ----- State combobox (address form) ----- */
 .state-combobox {
   position: relative; /* the dropdown anchors to the field */

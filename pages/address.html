@@ -117,6 +117,16 @@
           <h1 class="section-title" data-testid="address-heading">
             Where should we send your invitation?
           </h1>
+          <!-- Personalization accent: the guest name renders in quiet script
+               here — never inside the loud uppercase H1 (it reads as
+               yelling). Hidden until a valid token arrives. -->
+          <p
+            class="script script-guest"
+            data-testid="address-guest-line"
+            hidden
+          >
+            for <span data-testid="address-guest-name"></span>
+          </p>
           <div class="divider" role="separator" aria-hidden="true">
             <span class="divider-rule"></span>
             <span class="divider-glyph">❦</span>
@@ -412,7 +422,9 @@
       const inviteOnly = document.querySelector(
         '[data-testid="address-invite-only"]',
       );
-      const heading = document.querySelector('[data-testid="address-heading"]');
+      const guestLine = document.querySelector(
+        '[data-testid="address-guest-line"]',
+      );
       const tokenInput = form.elements.namedItem("guest_token");
       const token =
         new URLSearchParams(window.location.search)
@@ -420,19 +432,20 @@
           ?.trim()
           .slice(0, 64) ?? "";
 
-      function personalizeHeading(guestName) {
-        if (!heading) return;
-        heading.textContent = "";
-        heading.append("Where should we send it, ");
-        const nameSpan = document.createElement("span");
-        nameSpan.setAttribute("data-testid", "address-guest-name");
-        nameSpan.textContent = guestName; // textContent — never innerHTML
-        heading.appendChild(nameSpan);
-        heading.append("?");
+      // The personalization lives in the script accent line under the
+      // heading — the H1 itself stays static and neutral.
+      function showGuestName(guestName) {
+        if (!guestLine) return;
+        const nameSpan = guestLine.querySelector(
+          '[data-testid="address-guest-name"]',
+        );
+        if (nameSpan) nameSpan.textContent = guestName; // textContent — never innerHTML
+        guestLine.hidden = false;
       }
 
       function showInviteOnly() {
         if (inviteOnly) inviteOnly.hidden = false;
+        if (guestLine) guestLine.hidden = true;
         form.hidden = true;
         inviteOnly?.scrollIntoView({ behavior: "smooth", block: "center" });
       }
@@ -449,7 +462,7 @@
           const data = res.ok ? await res.json().catch(() => null) : null;
           if (data?.valid) {
             tokenInput.value = token;
-            personalizeHeading(data.guest_name ?? "friend");
+            showGuestName(data.guest_name ?? "friend");
             inviteOnly.hidden = true;
             form.hidden = false;
           } else {
